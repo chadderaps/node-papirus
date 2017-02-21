@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+debug = require('debug') 'papirus'
 
 module.exports =
 class EPD
@@ -24,12 +25,13 @@ class EPD
 
   loadVersion: () ->
     versionFile = path.join @settings.epd_path, 'version'
-    versionInfo = fs.readFileSync versionFile
+    versionInfo = fs.readFileSync versionFile, { encoding: 'utf8' }
+    debug versionInfo
     @version = versionInfo.split('\n')[0]
 
   loadPanel: () ->
     panelFile = path.join @settings.epd_path, 'panel'
-    panelInfo = fs.readFileSync panelFile
+    panelInfo = fs.readFileSync panelFile, { encoding: 'utf8' }
     panelLines = panelInfo.split '\n'
 
     patt = ///^([A-Za-z]+)\s+(\d+\.\d+)\s+(\d+)x(\d+)\s+COG\s+(\d+)\s+FILM\s+(\d+)\s*$///
@@ -38,7 +40,7 @@ class EPD
 
     throw new Error('invalid panel string') if not panelData
 
-    @settings.panel = "#{panelData[1] panelData[2]}"
+    @settings.panel = "#{panelData[1]} #{panelData[2]}"
     @settings.width = parseInt panelData[3]
     @settings.height = parseInt panelData[4]
     @settings.cog = parseInt panelData[5]
@@ -50,7 +52,7 @@ class EPD
   display: (image, callback) ->
 
   clear: (callback) ->
-    @comand 'C', callback
+    @command 'C', callback
 
   update: (callback) ->
     @command 'U', callback

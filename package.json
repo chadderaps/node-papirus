@@ -4,11 +4,13 @@
   "description": "Node library for PaPiRus eink display",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "coffee-script": "^1.12.4"
+    "coffee-script": "^1.12.4",
+    "debug": "^2.6.1"
   }
 }
