@@ -5,12 +5,15 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js",
+    "build": "node-gyp configure build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "coffee-script": "^1.12.4",
-    "debug": "^2.6.1"
+    "debug": "^2.6.1",
+    "jimp": "^0.2.27",
+    "node-gyp": "^3.5.0"
   }
 }

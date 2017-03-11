@@ -1,6 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 debug = require('debug') 'papirus'
+Jimp = require 'jimp'
 
 module.exports =
 class EPD
@@ -49,7 +50,67 @@ class EPD
     throw new Error('invalid panel geometry') if @settings.width < 1 or @settings.height < 1
 
 
+  width: () ->
+    return @settings.width
+
+  height: () ->
+    return @settings.height
+
+  numPixels: () ->
+    return @width() * @height()
+
+  numBytes: () ->
+    return @numPixels() / 8
+
   display: (image, callback) ->
+
+    image.greyscale()
+
+    if @width() is not image.bitmap.width or @height() is not image.bitmap.height
+      err = Error('Image does not fit screen')
+      return callback err, null
+
+
+    @convert image, (err, data) =>
+      writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
+      fs.writeFile writePath, data, {
+        encoding: 'binary'
+      }, (err) =>
+        if not err? and @settings.auto
+          return @update(callback)
+        else
+          return callback err, @
+
+      fs.writeFile '/home/chad/debug2.bmp', data, {
+        encoding: 'binary'
+      }, (err) =>
+        debug 'Wrote Debug File'
+        return
+
+    return
+
+  convert: (image, callback) ->
+    arr = new Array(@numBytes()).fill 0x00
+    data = image.bitmap.data
+
+    image.scan 0, 0, @width(), @height(), (x, y, idx) =>
+      pixel = data[idx]
+      #debug "#{x}, #{y}, #{idx}"
+      if pixel != data[idx+1] and pixel != data[idx+2]
+        debug 'Got non matching pixels'
+      bit = if pixel > 250 then 1 else 0
+
+      pixelIdx = y * @width() + x
+      arrIdx = Math.floor pixelIdx / 8
+      bitIdx = pixelIdx % 8
+
+      arr[arrIdx] = arr[arrIdx] | bit << (7-bitIdx)
+
+    buf = new Buffer(arr)
+    debug buf
+
+    callback null, buf
+
 
   clear: (callback) ->
     @command 'C', callback
