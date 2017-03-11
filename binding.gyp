@@ -2,7 +2,7 @@
     "targets": [
         {
             "target_name": "bitimage",
-            "sources": [ "bitimage.cpp" ]
+            "sources": [ "src/bitimage/bitimage.cpp" ]
         }
     ]
 }

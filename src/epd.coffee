@@ -2,6 +2,7 @@ fs = require 'fs'
 path = require 'path'
 debug = require('debug') 'papirus'
 Jimp = require 'jimp'
+var bitimage = require('../build/Release/bitimage')
 
 module.exports =
 class EPD
@@ -70,8 +71,7 @@ class EPD
       err = Error('Image does not fit screen')
       return callback err, null
 
-
-    @convert image, (err, data) =>
+    bitimage.convert image.bitmap.data, (err, data) =>
       writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
       fs.writeFile writePath, data, {
         encoding: 'binary'
@@ -81,18 +81,13 @@ class EPD
         else
           return callback err, @
 
-      fs.writeFile '/home/chad/debug2.bmp', data, {
-        encoding: 'binary'
-      }, (err) =>
-        debug 'Wrote Debug File'
-        return
-
     return
 
   convert: (image, callback) ->
-    arr = new Array(@numBytes()).fill 0x00
-    data = image.bitmap.data
+    bitimage.convert image.bitmap.data, (err, data) =>
+      callback err, data
 
+    ///
     image.scan 0, 0, @width(), @height(), (x, y, idx) =>
       pixel = data[idx]
       #debug "#{x}, #{y}, #{idx}"
@@ -110,6 +105,7 @@ class EPD
     debug buf
 
     callback null, buf
+    ///
 
 
   clear: (callback) ->
