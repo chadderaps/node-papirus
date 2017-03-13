@@ -35,3 +35,7 @@ var image = new Jimp(200, 96, 0xFFFFFFFF, function (err, image) {
 		debug(err)
 	})
 })
+
+bitimage.addchar(buf, 'a', {'size': 10}, function (err) {
+  console.log(err);
+})
