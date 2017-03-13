@@ -9,12 +9,12 @@ bool BitImage::alloc()
 
   if (width != 0 or height != 0)
   {
-    buffer = new unsigned char[width * height];
+    buffer = new unsigned char[Size()];
   }
 
   if (buffer)
   {
-    for (int i = 0; i < width * height; ++i)
+    for (int i = 0; i < Size(); ++i)
     {
       buffer[i] = 0xFF;
     }
@@ -58,14 +58,19 @@ int BitImage::SetChar(char c, int size, int x, int y)
   if (image->width + x >= width) return -3;
   if (image->height + y >= height) return -4;
 
-  for (int vert = 0; vert < image->height; ++vert)
+  int hCount = image->height / 8;
+  if (image->height & 0x7) hCount++;
+  int wCount = image->width / 8;
+  if (image->width & 0x7) wCount++;
+
+  for (int vert = 0; vert < hCount; vert += 8)
   {
-    int bufoffset = (y + vert) * height;
-    int imageoffset = vert * image->height;
-    for (int hor = 0; hor < image->width; ++hor)
+    int bufoffset = ((y + vert) * width) / 8;
+    int imageoffset = (vert * image->width) / 8;
+    for (int hor = 0; hor < wCount; hor += 8)
     {
-      unsigned char byte = image->data[imageoffset];
-      buffer[bufoffset] = byte;
+      unsigned char byte = image->data[imageoffset + ((x+hor) / 8)];
+      buffer[bufoffset + (hor / 8)] = byte;
     }
   }
 

@@ -1,6 +1,7 @@
 require('coffee-script/register')
 var debug = require('debug')('papirus')
 var Jimp = require('jimp')
+var bitimage = require('./build/Release/bitimage')
 
 var PaPiRus = require('./src/epd')
 
@@ -8,22 +9,20 @@ module.exports = PaPiRus
 
 var screen = new PaPiRus({'auto': true})
 
+var buf = new Buffer(100)
+
 screen.clear(function (err) {
 	debug(err)
 	debug('Completed screen clear')
 
-	image = new Jimp(screen.width(), screen.height(), 0xFFFFFFFF, function (err, image) {
+
+	bitimage.addchar(buf, 'a', {'size': 10}, function (err, image) {
+
 		if (err) {
-			return
+			return debug(err)
 		}
 
-		Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-			image.print(font, 0, 0, 'Hello World')
-			screen.display(image, function (err, screen) {
-				debug(err)
-				debug('Displayed Hello World')
-			})
-		}).catch(function (err) {
+		screen.writeBuf(image, function (err, s) {
 			debug(err)
 		})
 	})

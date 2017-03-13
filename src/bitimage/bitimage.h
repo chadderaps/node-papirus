@@ -29,7 +29,7 @@ public:
 
   const unsigned char * Buffer() { return buffer; }
 
-  int Size() { return width * height; }
+  int Size() { return (width * height) / 8; }
 };
 
 #endif

@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 debug = require('debug') 'papirus'
 Jimp = require 'jimp'
-var bitimage = require('../build/Release/bitimage')
+bitimage = require '../build/Release/bitimage'
 
 module.exports =
 class EPD
@@ -71,23 +71,42 @@ class EPD
       err = Error('Image does not fit screen')
       return callback err, null
 
-    bitimage.convert image.bitmap.data, (err, data) =>
+    debug 'start'
+    #bitimage.convert image.bitmap.data, (err, data) =>
+    @convert image, (err, data) =>
+      debug 'done convert'
       writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
       fs.writeFile writePath, data, {
         encoding: 'binary'
       }, (err) =>
         if not err? and @settings.auto
+          debug 'done writing image'
           return @update(callback)
         else
           return callback err, @
 
     return
 
-  convert: (image, callback) ->
-    bitimage.convert image.bitmap.data, (err, data) =>
-      callback err, data
+  writeBuf: (buf, callback) ->
 
-    ///
+    for byte in buf
+      debug byte
+
+    writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
+    fs.writeFile writePath, buf, {
+      encoding: 'binary'
+    }, (err) =>
+      if not err? and @settings.auto
+        debug 'done writing image'
+        return @update(callback)
+      else
+        return callback err, @
+
+
+  convert: (image, callback) ->
+    arr = new Array(@numBytes()).fill 0x00
+    data = image.bitmap.data
+
     image.scan 0, 0, @width(), @height(), (x, y, idx) =>
       pixel = data[idx]
       #debug "#{x}, #{y}, #{idx}"
@@ -102,10 +121,8 @@ class EPD
       arr[arrIdx] = arr[arrIdx] | bit << (7-bitIdx)
 
     buf = new Buffer(arr)
-    debug buf
 
     callback null, buf
-    ///
 
 
   clear: (callback) ->

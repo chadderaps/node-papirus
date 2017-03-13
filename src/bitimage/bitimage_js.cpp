@@ -2,6 +2,7 @@
 #include <node_buffer.h>
 #include "bitimage_fonts.h"
 #include "bitimage.h"
+#include <string.h>
 
 namespace demo {
   using v8::FunctionCallbackInfo;
@@ -102,9 +103,11 @@ namespace demo {
 
     memcpy(outData, screen->Buffer(), screen->Size());
 
-    Local<Value> argv[argc] = { out };
+    outData[0] = 0;
 
-    cb->Call(Null(isolate), argc, argv);
+    Local<Value> argv[2] = { Null(isolate), out };
+
+    cb->Call(Null(isolate), 2, argv);
 
     return;
   }
