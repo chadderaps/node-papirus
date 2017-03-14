@@ -16,7 +16,7 @@ screen.clear(function (err) {
 	debug('Completed screen clear')
 
 
-	bitimage.addchar(buf, 'a', {'size': 10}, function (err, image) {
+	bitimage.addchar(buf, 'd', {'size': 12}, function (err, image) {
 
 		if (err) {
 			return debug(err)

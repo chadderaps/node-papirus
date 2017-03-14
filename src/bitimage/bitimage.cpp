@@ -1,5 +1,6 @@
 #include "bitimage.h"
 #include "bitimage_fonts.h"
+#include <stdio.h>
 
 bool BitImage::alloc()
 {
@@ -58,19 +59,30 @@ int BitImage::SetChar(char c, int size, int x, int y)
   if (image->width + x >= width) return -3;
   if (image->height + y >= height) return -4;
 
-  int hCount = image->height / 8;
-  if (image->height & 0x7) hCount++;
+  int hCount = image->height;
   int wCount = image->width / 8;
-  if (image->width & 0x7) wCount++;
-
-  for (int vert = 0; vert < hCount; vert += 8)
+  unsigned char mask = 0x00;
+  if (image->width & 0x7)
   {
-    int bufoffset = ((y + vert) * width) / 8;
-    int imageoffset = (vert * image->width) / 8;
-    for (int hor = 0; hor < wCount; hor += 8)
+    mask = 0xFF >> (image->width & 0x7);
+    wCount++;
+  }
+
+  printf("Char size is %u %u\n", image->height, image->width);
+
+  int count = hCount * wCount;
+  int scrWidth = width / 8;
+  int wStart = x / 8;
+
+  for (int i = 0; i < count; i++)
+  {
+    unsigned char byte = image->data[i];
+    buffer[wStart + i % wCount] = byte;
+
+    if (i and (i % wCount) == 0)
     {
-      unsigned char byte = image->data[imageoffset + ((x+hor) / 8)];
-      buffer[bufoffset + (hor / 8)] = byte;
+      buffer[wStart + i % wCount] |= mask;
+      wStart += scrWidth;
     }
   }
 

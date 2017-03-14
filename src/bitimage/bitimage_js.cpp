@@ -8,10 +8,11 @@ namespace demo {
   using v8::FunctionCallbackInfo;
   using v8::Isolate;
   using v8::Local;
+  using v8::MaybeLocal;
   using v8::Object;
   using v8::String;
   using v8::Function;
-  using v8::Number;
+  using v8::Integer;
   using v8::Value;
   using v8::Exception;
   using v8::Null;
@@ -61,18 +62,21 @@ namespace demo {
 
     Local<Object> parms = args[2]->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
 
+    Local<Value> valSize = parms->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "size")).ToLocalChecked();
+
+    Local<Integer> size = valSize->ToInteger(isolate->GetCurrentContext()).ToLocalChecked();
+
     String::Utf8Value charStr(str);
 
     BitImage * screen = new BitImage();
 
     screen->Init("MyImage", 200, 96);
-    int status = screen->SetChar((*charStr)[0], 8, 0, 0);
+    int status = screen->SetChar((*charStr)[0], size->Value(), 0, 0);
 
     if (status < 0)
     {
-      char c = '0' - (char)status;
-      string retStr("Could not allocate screen buffer -");
-      retStr += c;
+      string retStr("Could not allocate screen buffer ");
+      retStr += to_string(status);
       Local<Value> argv[argc] = { Exception::TypeError(
         String::NewFromUtf8(isolate, retStr.c_str())
       )};
@@ -103,7 +107,7 @@ namespace demo {
 
     memcpy(outData, screen->Buffer(), screen->Size());
 
-    outData[0] = 0;
+    delete screen;
 
     Local<Value> argv[2] = { Null(isolate), out };
 

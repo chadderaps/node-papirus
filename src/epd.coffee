@@ -89,9 +89,6 @@ class EPD
 
   writeBuf: (buf, callback) ->
 
-    for byte in buf
-      debug byte
-
     writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
     fs.writeFile writePath, buf, {
       encoding: 'binary'
