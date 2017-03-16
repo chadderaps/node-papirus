@@ -29,3 +29,48 @@ bitimage.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) 
     debug(image.slice(i,i+count));
   }
 })
+
+var obj = new bitimage.BitImage({
+  "name": "stuff",
+  "width": 200,
+  "height": 96,
+})
+
+obj.AddObject1({
+  "name": "and that",
+  "x": 0,
+  "y": 20,
+  "size": 16,
+  "align": "LEFT"
+})
+
+debug(obj)
+
+debug(obj.GetObject({
+  "name": "and that"
+}))
+
+debug(obj.SetValue({
+  "name": "and that",
+  "value": "12"
+}))
+
+debug(obj)
+
+debug(obj.GetObject({
+  "name": "and that"
+}))
+
+obj.Draw(function (err, image) {
+  if (err) {
+    debug("Got Error")
+    return debug(err)
+  }
+
+  let count = 25;
+
+  for (let i = 0; i < image.length; i+=count) {
+    debug(image.slice(i,i+count));
+  }
+
+})

@@ -17,6 +17,7 @@ namespace demo {
   using v8::Exception;
   using v8::Null;
   using v8::Context;
+  using namespace bitimage;
 
   void Method(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
@@ -106,7 +107,7 @@ namespace demo {
 
     unsigned char * outData = (unsigned char *)node::Buffer::Data(out);
 
-    memcpy(outData, screen->Buffer(), screen->Size());
+    memcpy(outData, screen->buffer, screen->Size());
 
     delete screen;
 
@@ -197,6 +198,7 @@ namespace demo {
   }
 
   void init(Local<Object> exports) {
+    BitImage::Init(exports);
     NODE_SET_METHOD(exports, "hello", Method);
     NODE_SET_METHOD(exports, "convert", Convert);
     NODE_SET_METHOD(exports, "addchar", AddChar);
