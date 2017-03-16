@@ -1,6 +1,7 @@
 #include "bitimage.h"
 #include "bitimage_fonts.h"
 #include <stdio.h>
+#include <string.h>
 
 namespace bitimage
 {
@@ -313,14 +314,12 @@ string BitImage::GetAlignmentString(BitImage::ALIGNMENT align)
 int BitImage::bitimage_object::Height()
 {
   int height = 0;
-  int spacing = 0;
 
   for (auto c = value.begin(); c != value.end(); ++c)
   {
     const CharFont::char_font * image = CharFont::getChar(*c, size);
 
-    height += image->height + spacing;
-    if (not spacing) spacing = 1;
+    height += image->height;
 
     break;
   }
@@ -331,15 +330,12 @@ int BitImage::bitimage_object::Height()
 int BitImage::bitimage_object::Width()
 {
   int width = 0;
-  int spacing = 0;
 
   for (auto c = value.begin(); c != value.end(); ++c)
   {
     const CharFont::char_font * image = CharFont::getChar(*c, size);
 
-    width += image->width + spacing;
-    spacing = image->width / 8;
-    if (not spacing) spacing = 1;
+    width += image->width;
   }
 
   return width;

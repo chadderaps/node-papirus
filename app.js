@@ -9,9 +9,26 @@ module.exports = PaPiRus
 
 var screen = new PaPiRus({'auto': true})
 
-var buf = new Buffer(100)
+screen_buffer = new bitimage.BitImage({
+  "name":"screen",
+  "width": screen.width(),
+  "height": screen.height()
+})
 
-bitimage.addchar(buf, 'd', {'size': 16}, function (err, image) {
+screen_buffer.AddObject1({
+  "name": "temp",
+  "x": 0,
+  "y": 0,
+  "size": 16,
+  "align": "TOPLEFT",
+})
+
+screen_buffer.SetValue({
+  "name": "temp",
+  "value": "12",
+})
+
+screen_buffer.Draw(function (err, image) {
 
 	if (err) {
 		return debug(err)
