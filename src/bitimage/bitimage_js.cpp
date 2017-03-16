@@ -59,19 +59,20 @@ namespace demo {
     }
 
     Local<String> str = args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-
     Local<Object> parms = args[2]->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-
     Local<Value> valSize = parms->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "size")).ToLocalChecked();
-
+    Local<Value> xVal = parms->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "x")).ToLocalChecked();
+    Local<Value> yVal = parms->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "y")).ToLocalChecked();
     Local<Integer> size = valSize->ToInteger(isolate->GetCurrentContext()).ToLocalChecked();
+    Local<Integer> x = xVal->ToInteger(isolate->GetCurrentContext()).ToLocalChecked();
+    Local<Integer> y = yVal->ToInteger(isolate->GetCurrentContext()).ToLocalChecked();
 
     String::Utf8Value charStr(str);
 
     BitImage * screen = new BitImage();
 
     screen->Init("MyImage", 200, 96);
-    int status = screen->SetChar((*charStr)[0], size->Value(), 0, 0);
+    int status = screen->SetChar((*charStr)[0], size->Value(), x->Value(), y->Value());
 
     if (status < 0)
     {

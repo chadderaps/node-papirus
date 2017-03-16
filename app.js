@@ -11,19 +11,13 @@ var screen = new PaPiRus({'auto': true})
 
 var buf = new Buffer(100)
 
-screen.clear(function (err) {
-	debug(err)
-	debug('Completed screen clear')
+bitimage.addchar(buf, 'd', {'size': 16}, function (err, image) {
 
+	if (err) {
+		return debug(err)
+	}
 
-	bitimage.addchar(buf, 'd', {'size': 12}, function (err, image) {
-
-		if (err) {
-			return debug(err)
-		}
-
-		screen.writeBuf(image, function (err, s) {
-			debug(err)
-		})
+	screen.writeBuf(image, function (err, s) {
+		debug(err)
 	})
 })

@@ -53,18 +53,22 @@ int BitImage::SetChar(char c, int size, int x, int y)
     return -1;
   }
 
+  printf("X, Y = %u, %u\n", x, y);
+
   const CharFont::char_font * image = CharFont::getChar(c, size);
 
   if (image == NULL) return -2;
   if (image->width + x >= width) return -3;
   if (image->height + y >= height) return -4;
 
+  int xShift = x & 0x7;
+
   int hCount = image->height;
-  int wCount = image->width / 8;
+  int wCount = (image->width + xShift) / 8;
   unsigned char mask = 0x00;
   if (image->width & 0x7)
   {
-    mask = 0xFF >> (image->width & 0x7);
+    mask = 0xFF >> ((image->width & 0x7) + xShift);
     wCount++;
   }
 
@@ -74,15 +78,29 @@ int BitImage::SetChar(char c, int size, int x, int y)
   int scrWidth = width / 8;
   int wStart = x / 8;
 
+  unsigned char maskByte = 0xFF << (8 - xShift);
+  unsigned char nextByte = maskByte & buffer[wStart];
+
   for (int i = 0; i < count; i++)
   {
     unsigned char byte = image->data[i];
-    buffer[wStart + i % wCount] = byte;
+
+    if (xShift == 0)
+    {
+      buffer[wStart + i % wCount] = byte;
+    }
+    else
+    {
+      unsigned char tempByte = byte >> xShift;
+      buffer[wStart + i % wCount] = tempByte | nextByte;
+      nextByte = byte << (8 - xShift);
+    }
 
     if (i and (i % wCount) == 0)
     {
       buffer[wStart + i % wCount] |= mask;
       wStart += scrWidth;
+      nextByte = maskByte | buffer[wStart];
     }
   }
 

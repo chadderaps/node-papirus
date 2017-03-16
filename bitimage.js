@@ -18,24 +18,13 @@ bitimage.convert(buf, function (err, val) {
   console.log(val)
 })
 
-var image = new Jimp(200, 96, 0xFFFFFFFF, function (err, image) {
-	if (err) {
-		return
-	}
+bitimage.addchar(buf, 'a', {'size': 16, 'x': 10, 'y': 1}, function (err, image) {
+  if (err) {
+    console.log(err)
+    return
+  }
 
-	Jimp.loadFont(Jimp.FONT_SANS_32_BLACK).then(function (font) {
-		image.print(font, 0, 0, 'Hello World')
-    bitimage.convert(image.bitmap.data, function (err, data) {
-      debug(data)
-      fs.writeFile('./debug.bmp', data, { 'encoding': 'binary' }, function (err) {
-        debug("Wrote bmp file")
-      })
-    })
-	}).catch(function (err) {
-		debug(err)
-	})
-})
+  debug(image);
 
-bitimage.addchar(buf, 'a', {'size': 16}, function (err) {
-  console.log(err);
+
 })
