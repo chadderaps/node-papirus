@@ -64,15 +64,24 @@ int BitImage::SetChar(char c, int size, int x, int y)
   int xShift = x & 0x7;
 
   int hCount = image->height;
-  int wCount = (image->width + xShift) / 8;
+  int wCount = (image->width) / 8;
   unsigned char mask = 0x00;
+  bool addFinalByte = false;
+
   if (image->width & 0x7)
   {
-    mask = 0xFF >> ((image->width & 0x7) + xShift);
+    int maskShift = ((image->width & 0x7) + xShift);
+    if (maskShift > 8)
+    {
+      maskShift -= 8;
+      if (maskShift) addFinalByte = true;
+    }
+    if (maskShift) mask = 0xFF >> maskShift;
     wCount++;
   }
 
   printf("Char size is %u %u\n", image->height, image->width);
+  printf("X Shift is %u\n", xShift);
 
   int count = hCount * wCount;
   int scrWidth = width / 8;
@@ -84,23 +93,33 @@ int BitImage::SetChar(char c, int size, int x, int y)
   for (int i = 0; i < count; i++)
   {
     unsigned char byte = image->data[i];
+    printf("Byte is 0x%02X\n", byte);
 
     if (xShift == 0)
     {
       buffer[wStart + i % wCount] = byte;
+      printf("Updated %u with 0x%02X\n", wStart + i % wCount, byte);
     }
     else
     {
       unsigned char tempByte = byte >> xShift;
+      printf("Updated %u with 0x%02X | 0x%02X\n", wStart + i % wCount, tempByte, nextByte);
       buffer[wStart + i % wCount] = tempByte | nextByte;
       nextByte = byte << (8 - xShift);
     }
 
-    if (i and (i % wCount) == 0)
+    if ((i % wCount) == wCount-1)
     {
-      buffer[wStart + i % wCount] |= mask;
+      if (addFinalByte)
+      {
+          buffer[wStart + 1 + i % wCount] = nextByte | mask;
+      }
+      else
+      {
+        buffer[wStart + i % wCount] |= mask;
+      }
       wStart += scrWidth;
-      nextByte = maskByte | buffer[wStart];
+      nextByte = maskByte & buffer[wStart];
     }
   }
 

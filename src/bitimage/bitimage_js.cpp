@@ -110,6 +110,8 @@ namespace demo {
 
     delete screen;
 
+    printf("First byte is 0x%02X\n", outData[0]);
+
     Local<Value> argv[2] = { Null(isolate), out };
 
     cb->Call(Null(isolate), 2, argv);
