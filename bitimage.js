@@ -18,7 +18,7 @@ bitimage.convert(buf, function (err, val) {
   console.log(val)
 })
 
-bitimage.addchar(buf, '1', {'size': 16, 'x': 7, 'y': 0}, function (err, image) {
+bitimage.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) {
   if (err) {
     console.log(err)
     return

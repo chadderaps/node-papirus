@@ -72,7 +72,7 @@ namespace demo {
     BitImage * screen = new BitImage();
 
     screen->Init("MyImage", 200, 96);
-    int status = screen->SetChar((*charStr)[0], size->Value(), x->Value(), y->Value());
+    int status = screen->SetString(*charStr, size->Value(), x->Value(), y->Value());
 
     if (status < 0)
     {

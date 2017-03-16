@@ -17,6 +17,8 @@ private:
 
   bool alloc();
 
+  int AddChar(const CharFont::char_font * image, int x, int y);
+
 public:
 
   BitImage();
@@ -26,6 +28,7 @@ public:
   bool Init(string n, int w, int h);
 
   int SetChar(char c, int size, int x, int y);
+  int SetString(string str, int size, int x, int y);
 
   const unsigned char * Buffer() { return buffer; }
 

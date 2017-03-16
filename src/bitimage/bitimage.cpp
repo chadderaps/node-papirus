@@ -45,6 +45,24 @@ bool BitImage::Init(string n, int w, int h)
   return true;
 }
 
+int BitImage::SetString(string str, int size, int x, int y)
+{
+  int status = 0;
+  int offset = 0;
+
+  for (auto c = str.begin(); c != str.end(); ++c)
+  {
+    const CharFont::char_font * image = CharFont::getChar(*c, size);
+    status = AddChar(image, x + offset, y);
+
+    if (status < 0) break;
+
+    offset += image->width + image->width / 5;
+  }
+
+  return status;
+}
+
 int BitImage::SetChar(char c, int size, int x, int y)
 {
   if (not buffer) return -5;
@@ -56,6 +74,12 @@ int BitImage::SetChar(char c, int size, int x, int y)
   printf("X, Y = %u, %u\n", x, y);
 
   const CharFont::char_font * image = CharFont::getChar(c, size);
+
+  return AddChar(image, x, y);
+}
+
+int BitImage::AddChar(const CharFont::char_font * image, int x, int y)
+{
 
   if (image == NULL) return -2;
   if (image->width + x >= width) return -3;
