@@ -23,10 +23,23 @@ screen_buffer.AddObject1({
   "align": "TOPLEFT",
 })
 
+screen_buffer.AddObject1({
+  "name": "temp_label",
+  "x": 25,
+  "y": 0,
+  "size": 16,
+  "align": "TOPLEFT"
+})
+
 screen_buffer.SetValue({
   "name": "temp",
   "value": "12",
 })
+
+screen_buffer.SetValue({
+  "name": "temp_label",
+  "value": "c",
+}) 
 
 screen_buffer.Draw(function (err, image) {
 
