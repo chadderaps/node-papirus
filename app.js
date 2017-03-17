@@ -38,7 +38,7 @@ screen_buffer.SetValue({
 
 screen_buffer.SetValue({
   "name": "temp_label",
-  "value": "c",
+  "value": "Chgd",
 }) 
 
 screen_buffer.Draw(function (err, image) {
