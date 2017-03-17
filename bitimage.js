@@ -41,7 +41,7 @@ obj.AddObject1({
   "x": 0,
   "y": 0,
   "size": 16,
-  "align": "LEFT"
+  "align": "TOPLEFT"
 })
 
 debug(obj)
@@ -68,11 +68,23 @@ obj.Draw(function (err, image) {
   }
 
   let count = 25;
+  let draw = 10;
 
   console.log(image.length);
 
   for (let i = 0; i < image.length; i+=count) {
-    debug(image.slice(i,i+count));
+    bits = ''
+    for (let j = 0; j < draw; j++) {
+      b = image[i+j];
+      for (let k = 0; k < 8; k++) {
+        if (b & (1 << (7-k))) {
+          bits += '.'
+        } else {
+          bits += ' '
+        }
+      }
+    }
+    debug(bits)
   }
 
 })

@@ -183,13 +183,15 @@ void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
     int x = bObj.x;
     int y = bObj.y;
 
-    if (bObj.align & ALIGNMENT_BOTTOM)
+    printf("Alignment is 0x%08X\n", bObj.align);
+
+    if (bObj.align & ALIGNMENT_TOP)
     {
-      y -= bObj.Height();
+      y += bObj.Height();
     }
-    else if ((bObj.align & ALIGNMENT_TOP) == 0)
+    else if ((bObj.align & ALIGNMENT_BOTTOM) == 0)
     {
-      y -= bObj.Height() / 2;
+      y += bObj.Height() / 2;
       printf("Height was set to %u\n", bObj.Height() / 2);
     }
 
@@ -295,7 +297,7 @@ BitImage::ALIGNMENT BitImage::GetAlignment(string align)
     return ALIGNMENT_LEFT;
   }
 
-  return ALIGNMENT_TOP;
+  return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
 }
 
 string BitImage::GetAlignmentString(BitImage::ALIGNMENT align)
@@ -321,10 +323,13 @@ int BitImage::bitimage_object::Height()
 
     int err = parent->fonts.GetChar("Menlo", size, *c, image);
 
-    height += image->Height() + image->ShiftDown();
-
-    break;
+    if (image->Top() > height)
+    {
+      height = image->Top();
+    }
   }
+
+  printf("BitImage object height is %d\n", height);
 
   return height;
 }
@@ -413,11 +418,11 @@ int BitImage::SetString(string str, int size, int x, int y)
       return -1;
     }
 
-    printf("Shifts are 0x%08X 0x%08X\n", image->ShiftRight(), image->ShiftDown());
+    printf("Shifts are 0x%08X 0x%08X\n", image->ShiftRight(), image->Top());
 
-    printf("Writing char %c at %u %u\n", *c, x + image->ShiftRight(), y + image->ShiftDown());
+    printf("Writing char %c at %u %u\n", *c, x + image->ShiftRight(), y - image->Top());
 
-    status = AddChar(image, x + image->ShiftRight(), y + image->ShiftDown());
+    status = AddChar(image, x + image->ShiftRight(), y - image->Top());
 
     if (status < 0)
     {
@@ -451,7 +456,7 @@ int BitImage::SetChar(char c, int size, int x, int y)
     return status;
   }
 
-  return AddChar(image, x + image->ShiftRight(), y + image->ShiftDown());
+  return AddChar(image, x + image->ShiftRight(), y);
 }
 
 int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
