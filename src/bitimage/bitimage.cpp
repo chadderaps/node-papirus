@@ -321,7 +321,7 @@ int BitImage::bitimage_object::Height()
 
     int err = parent->fonts.GetChar("Menlo", size, *c, image);
 
-    height += image->Height();
+    height += image->Height() + image->ShiftDown();
 
     break;
   }
@@ -339,7 +339,7 @@ int BitImage::bitimage_object::Width()
 
     int err = parent->fonts.GetChar("Menlo", size, *c, image);
 
-    width += image->Width();
+    width += image->AdvanceRight();
   }
 
   return width;
@@ -400,7 +400,6 @@ bool BitImage::Init(string n, int w, int h)
 int BitImage::SetString(string str, int size, int x, int y)
 {
   int status = 0;
-  int offset = 0;
 
   for (auto c = str.begin(); c != str.end(); ++c)
   {
@@ -414,7 +413,7 @@ int BitImage::SetString(string str, int size, int x, int y)
       return -1;
     }
 
-    status = AddChar(image, x + offset, y);
+    status = AddChar(image, x + image->ShiftRight(), y + image->ShiftDown());
 
     if (status < 0)
     {
@@ -422,7 +421,7 @@ int BitImage::SetString(string str, int size, int x, int y)
       break;
     }
 
-    offset += image->Width();
+    x += image->AdvanceRight();
   }
 
   return status;
@@ -448,7 +447,7 @@ int BitImage::SetChar(char c, int size, int x, int y)
     return status;
   }
 
-  return AddChar(image, x, y);
+  return AddChar(image, x + image->ShiftRight(), y + image->ShiftDown());
 }
 
 int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)

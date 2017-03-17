@@ -18,6 +18,14 @@ private:
   int height;
   int num_bytes;
   int pitch;
+  struct {
+    int x;
+    int y;
+  } advance;
+  struct {
+    int left;
+    int top;
+  } offset;
   unsigned char * bits;
 
 public:
@@ -53,10 +61,13 @@ public:
   iterator begin() { return iterator(this, 0); }
   const iterator & end() { return endIter; }
 
-  BitCharBuffer(int w, int h, int p, unsigned char * buffer);
+  BitCharBuffer(FT_GlyphSlot glyph);
 
   int Height() { return height; }
   int Width() { return width; }
+  int ShiftDown() { return offset.top; }
+  int ShiftRight() { return offset.left; }
+  int AdvanceRight() { return advance.x; }
 
   private:
     iterator endIter;

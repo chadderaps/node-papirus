@@ -2,16 +2,24 @@
 
 using namespace CharFont;
 
-BitCharBuffer::BitCharBuffer(int w, int h, int p, unsigned char * buffer) :
-  width(w), height(h), num_bytes(h*p), pitch(p), endIter(this, num_bytes)
+BitCharBuffer::BitCharBuffer(FT_GlyphSlot glyph) :
+  width(glyph->bitmap.width),
+  height(glyph->bitmap.rows),
+  num_bytes(glyph->bitmap.pitch * height),
+  pitch(glyph->bitmap.pitch),
+  endIter(this, num_bytes)
 {
+  advance.x = glyph.advance.x;
+  advance.y = glyph.advance.y;
+  offset.left = glyph.bitmap_left;
+  offset.top = -glyph.bitmap_top;
+
   bits = new unsigned char[num_bytes+1];
 
   for (int i = 0; i < num_bytes; ++i)
   {
-    bits[i] = buffer[i] ^ 0xFF;
+    bits[i] = glyph->bitmap.buffer[i] ^ 0xFF;
   }
-  endIter = iterator(this, num_bytes);
 }
 
 BitChar::BitChar(FT_GlyphSlot glyph) :
@@ -35,7 +43,7 @@ void BitChar::AddChar(FT_GlyphSlot glyph, char c)
 {
   FT_Bitmap * bitmap = &glyph->bitmap;
 
-  chars[c] = new BitCharBuffer(bitmap->width, bitmap->rows, bitmap->pitch, bitmap->buffer);
+  chars[c] = new BitCharBuffer(glyph);
 }
 
 BitCharBuffer * BitChar::GetChar(char c)
