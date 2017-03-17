@@ -52,7 +52,7 @@ debug(obj.GetObject({
 
 debug(obj.SetValue({
   "name": "and that",
-  "value": "1g2"
+  "value": "12Chgd"
 }))
 
 debug(obj)

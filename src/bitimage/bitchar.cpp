@@ -12,7 +12,7 @@ BitCharBuffer::BitCharBuffer(FT_GlyphSlot glyph) :
   advance.x = glyph->advance.x / 64;
   advance.y = glyph->advance.y / 64;
   offset.left = glyph->bitmap_left;
-  offset.top = glyph->bitmap_top;
+  offset.top = -glyph->bitmap_top;
 
   printf("glyph top is %d\n", glyph->bitmap_top);
   printf("My top is %d\n", offset.top);
