@@ -1,15 +1,19 @@
 
-CSOURCES = bitimage.cpp \
+CSOURCES = bitchar.cpp \
 					 bitimage_fonts.cpp \
 					 test.cpp
 
-OBJFILES = $(CSOURCES:*.cpp=*.o)
+OBJFILES = $(CSOURCES:.cpp=.o)
 
 default = bitimage
 
+CFLAGS = -I"../../node_modules/freetype2/vendor/freetype/include" \
+				 -L"../../build/Release/" -lfreetype \
+				 -g
+
 $(info $(OBJFILES))
 $(OBJFILES) : %.o : %.cpp
-				g++ -c -o $@ $<
+				g++ $(CFLAGS) -c -o $@ $<
 
-bitimage: $(OBJFILES)
-				g++ -o $@ $^
+bitimage: $(CSOURCES)
+				g++ $(CFLAGS) -o $@ $^

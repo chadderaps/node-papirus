@@ -106,7 +106,7 @@ void BitImage::AddObject(const FunctionCallbackInfo<Value>& args)
 
   string strName(*charName);
 
-  obj->objects[strName] = bitimage_object(*charName, x->Value(), y->Value(), size->Value(), alignVal);
+  obj->objects[strName] = bitimage_object(obj, *charName, x->Value(), y->Value(), size->Value(), alignVal);
 }
 
 void BitImage::GetObject(const FunctionCallbackInfo<Value>& args)
@@ -317,9 +317,11 @@ int BitImage::bitimage_object::Height()
 
   for (auto c = value.begin(); c != value.end(); ++c)
   {
-    const CharFont::char_font * image = CharFont::getChar(*c, size);
+    CharFont::BitCharBuffer * image = NULL;
 
-    height += image->height;
+    int err = parent->fonts.GetChar("Menlo", size, *c, image);
+
+    height += image->Height();
 
     break;
   }
@@ -333,9 +335,11 @@ int BitImage::bitimage_object::Width()
 
   for (auto c = value.begin(); c != value.end(); ++c)
   {
-    const CharFont::char_font * image = CharFont::getChar(*c, size);
+    CharFont::BitCharBuffer * image = NULL;
 
-    width += image->width;
+    int err = parent->fonts.GetChar("Menlo", size, *c, image);
+
+    width += image->Width();
   }
 
   return width;
@@ -383,6 +387,13 @@ bool BitImage::Init(string n, int w, int h)
 
   if (not alloc()) return false;
 
+  fonts.Init(96);
+
+  if (fonts.Load("fonts/Menlo.ttc", "Menlo"))
+  {
+    printf("Couldn't load Menlow font\n");
+  }
+
   return true;
 }
 
@@ -393,16 +404,25 @@ int BitImage::SetString(string str, int size, int x, int y)
 
   for (auto c = str.begin(); c != str.end(); ++c)
   {
-    const CharFont::char_font * image = CharFont::getChar(*c, size);
+    CharFont::BitCharBuffer * image = NULL;
+
+    status = fonts.GetChar("Menlo", size, *c, image);
+
+    if (status != 0)
+    {
+      printf("Failed to get char %c\n", *c);
+      return -1;
+    }
+
     status = AddChar(image, x + offset, y);
 
     if (status < 0)
     {
-      printf("Failed on char %c", *c);
+      printf("Failed on char %c\n", *c);
       break;
     }
 
-    offset += image->width + image->width / 5;
+    offset += image->Width();
   }
 
   return status;
@@ -418,30 +438,38 @@ int BitImage::SetChar(char c, int size, int x, int y)
 
   printf("X, Y = %u, %u\n", x, y);
 
-  const CharFont::char_font * image = CharFont::getChar(c, size);
+  CharFont::BitCharBuffer * image = NULL;
+
+  int status = fonts.GetChar("Menlo", size, c, image);
+
+  if (status != 0)
+  {
+    printf("Failed to get char %c\n", c);
+    return status;
+  }
 
   return AddChar(image, x, y);
 }
 
-int BitImage::AddChar(const CharFont::char_font * image, int x, int y)
+int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
 {
 
   if (image == NULL) return -2;
-  if (image->width + x >= width) return -3;
-  if (image->height + y >= height) return -4;
+  if (image->Width() + x >= width) return -3;
+  if (image->Height() + y >= height) return -4;
 
   printf("X, Y = %u, %u\n", x, y);
 
   int xShift = x & 0x7;
 
-  int hCount = image->height;
-  int wCount = (image->width) / 8;
+  int hCount = image->Height();
+  int wCount = (image->Width()) / 8;
   unsigned char mask = 0x00;
   bool addFinalByte = false;
 
-  if (image->width & 0x7)
+  if (image->Width() & 0x7)
   {
-    int maskShift = ((image->width & 0x7) + xShift);
+    int maskShift = ((image->Width() & 0x7) + xShift);
     if (maskShift > 8)
     {
       maskShift -= 8;
@@ -451,7 +479,7 @@ int BitImage::AddChar(const CharFont::char_font * image, int x, int y)
     wCount++;
   }
 
-  printf("Char size is %u %u\n", image->height, image->width);
+  printf("Char size is %u %u\n", image->Height(), image->Width());
   printf("X Shift is %u\n", xShift);
 
   int count = hCount * wCount;
@@ -461,9 +489,11 @@ int BitImage::AddChar(const CharFont::char_font * image, int x, int y)
   unsigned char maskByte = 0xFF << (8 - xShift);
   unsigned char nextByte = maskByte & buffer[wStart];
 
-  for (int i = 0; i < count; i++)
+  int i = 0;
+
+  for (auto iter = image->begin(); iter != image->end(); ++iter, ++i)
   {
-    unsigned char byte = image->data[i];
+    unsigned char byte = *iter;
     printf("Byte is 0x%02X\n", byte);
 
     if (xShift == 0)

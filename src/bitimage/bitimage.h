@@ -31,21 +31,24 @@ public:
   struct bitimage_object
   {
     string name;
+    BitImage * parent;
     int x, y, size;
     ALIGNMENT align;
     string value;
 
-    bitimage_object(string n, int ex, int why, int s, ALIGNMENT a) :
-      name(n), x(ex), y(why), size(s), align(a), value("")
+    bitimage_object(BitImage * p, string n, int ex, int why, int s, ALIGNMENT a) :
+      parent(p), name(n), x(ex), y(why), size(s), align(a), value("")
     {}
 
     bitimage_object() :
-      name(""), x(0), y(0), size(16), align(ALIGNMENT_TOP), value("")
+      parent(NULL), name(""), x(0), y(0), size(16), align(ALIGNMENT_TOP), value("")
     {}
 
     int Height();
     int Width();
   };
+
+  CharFont::Fonts fonts;
 
   int width;
   int height;
@@ -60,7 +63,7 @@ public:
   bool alloc();
   void ResetBuffer();
 
-  int AddChar(const CharFont::char_font * image, int x, int y);
+  int AddChar(CharFont::BitCharBuffer * image, int x, int y);
 
   bool Init(string n, int w, int h);
 

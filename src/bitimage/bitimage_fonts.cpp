@@ -1,7 +1,86 @@
 #include "bitimage_fonts.h"
 
+FT_Library library;
+
 namespace CharFont
 {
+
+int Fonts::Init(int DPI)
+{
+  dpi = DPI;
+  return FT_Init_FreeType(&library);
+}
+
+int Fonts::Load(string font_path, string font_name)
+{
+  if (loaded_fonts.count(font_name)) return 0;
+
+  FT_Face face;
+  int error = FT_New_Face( library, font_path.c_str(), 0, &face);
+
+  if (error)
+  {
+    if (error == FT_Err_Unknown_File_Format) printf("Unknown Format\n");
+    return error;
+  }
+
+  loaded_fonts[font_name] = face;
+
+  return 0;
+}
+
+int Fonts::GetChar(string name, int size, char c, BitCharBuffer*& buffer)
+{
+  if (not loaded_fonts.count(name)) return -1;
+
+  FT_Face face = loaded_fonts[name];
+
+  string sizename = name + to_string(size);
+
+  BitChar * pInfo = NULL;
+
+  if (fonts_by_size.count(sizename))
+  {
+    pInfo = &fonts_by_size[sizename];
+  }
+
+  if (pInfo == NULL or pInfo->GetChar(c) == NULL)
+  {
+    int error = FT_Set_Char_Size(
+      face,
+      0,
+      size*64,
+      dpi,
+      0);
+
+    if (error) return error;
+
+    FT_UInt glyph_index = FT_Get_Char_Index(face, c);
+
+    error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
+
+    if (error) return error;
+
+    error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_MONO);
+
+    if (error) return error;
+
+    if (pInfo == NULL)
+    {
+      fonts_by_size[sizename] = BitChar(face->glyph);
+
+      pInfo = &fonts_by_size[sizename];
+    }
+
+    pInfo->AddChar(face->glyph, c);
+  }
+
+  buffer = pInfo->GetChar(c);
+
+  return 0;
+}
+
+/*
 
 unsigned char char_0_8_data[7] = { 0xf8, 0xd8, 0xa8, 0xa8, 0x88, 0xa8, 0xd8 };
 
@@ -1063,5 +1142,7 @@ const char_font * UPPER_CHARS[26][3] = {
         &char_Z_16
     }
 };
+
+*/
 
 };

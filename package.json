@@ -13,6 +13,7 @@
   "dependencies": {
     "coffee-script": "^1.12.4",
     "debug": "^2.6.1",
+    "freetype2": "^0.3.0",
     "jimp": "^0.2.27",
     "node-gyp": "^3.5.0"
   }

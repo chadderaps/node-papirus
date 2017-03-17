@@ -1,22 +1,46 @@
 #include <stdio.h>
-#include "bitimage.h"
+#include "bitimage_fonts.h"
 
-int main()
+void debug(string info)
 {
-  BitImage * screen = new BitImage();
+  printf("%s\n", info.c_str());
+}
 
-  screen->Init("Stuff and That", 24, 24);
+using namespace CharFont;
+int main(int argc, char * argv[])
+{
+  Fonts fonts = Fonts();
 
-  int ret = screen->SetChar('a', 8, 0, 0);
+  if (argc != 3) return -1;
 
-  const unsigned char * buffer = screen->Buffer();
+  debug("Init");
+  int error = fonts.Init(96);
 
-  for (int i = 0; i < screen->Size(); ++i)
+  if (error) printf("Error 1 %d\n", error);
+
+  debug("Load");
+  error = fonts.Load(argv[1], "Menlo");
+
+  if (error) printf("Error 2 %d\n", error);
+
+  BitCharBuffer * buffer = NULL;
+
+  debug("Get Char");
+  error = fonts.GetChar("Menlo", 16, argv[2][0], buffer);
+
+  if (error) printf("Error 3 %d\n", error);
+  if (buffer == NULL)
   {
-    printf("0x%02X ", buffer[i]);
+    printf("Invalid BitChar Buffer\n");
+    return -1;
   }
 
-  printf("\n");
+  debug("Dumping Buffer");
+  for (BitCharBuffer::iterator iter = buffer->begin(); iter != buffer->end(); ++iter)
+  {
+    debug("Looping");
+    printf("%u, %u - 0x%02X\n", iter.Col(), iter.Row(), *iter);
+  }
 
-  return ret;
+  return 0;
 }

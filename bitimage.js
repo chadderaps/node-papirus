@@ -39,7 +39,7 @@ var obj = new bitimage.BitImage({
 obj.AddObject1({
   "name": "and that",
   "x": 0,
-  "y": 20,
+  "y": 0,
   "size": 16,
   "align": "LEFT"
 })
@@ -52,7 +52,7 @@ debug(obj.GetObject({
 
 debug(obj.SetValue({
   "name": "and that",
-  "value": "12"
+  "value": "1 2"
 }))
 
 debug(obj)
@@ -68,6 +68,8 @@ obj.Draw(function (err, image) {
   }
 
   let count = 25;
+
+  console.log(image.length);
 
   for (let i = 0; i < image.length; i+=count) {
     debug(image.slice(i,i+count));
