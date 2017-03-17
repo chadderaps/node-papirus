@@ -413,6 +413,10 @@ int BitImage::SetString(string str, int size, int x, int y)
       return -1;
     }
 
+    printf("Shifts are 0x%08X 0x%08X\n", image->ShiftRight(), image->ShiftDown());
+
+    printf("Writing char %c at %u %u\n", *c, x + image->ShiftRight(), y + image->ShiftDown());
+
     status = AddChar(image, x + image->ShiftRight(), y + image->ShiftDown());
 
     if (status < 0)
@@ -454,7 +458,11 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
 {
 
   if (image == NULL) return -2;
-  if (image->Width() + x >= width) return -3;
+  if (image->Width() + x >= width)
+  {
+    printf("Image width is %u\n", image->Width());
+    return -3;
+  }
   if (image->Height() + y >= height) return -4;
 
   printf("X, Y = %u, %u\n", x, y);
@@ -493,17 +501,17 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
   for (auto iter = image->begin(); iter != image->end(); ++iter, ++i)
   {
     unsigned char byte = *iter;
-    printf("Byte is 0x%02X\n", byte);
+    //printf("Byte is 0x%02X\n", byte);
 
     if (xShift == 0)
     {
       buffer[wStart + i % wCount] = byte;
-      printf("Updated %u with 0x%02X\n", wStart + i % wCount, byte);
+      //printf("Updated %u with 0x%02X\n", wStart + i % wCount, byte);
     }
     else
     {
       unsigned char tempByte = byte >> xShift;
-      printf("Updated %u with 0x%02X | 0x%02X\n", wStart + i % wCount, tempByte, nextByte);
+      //printf("Updated %u with 0x%02X | 0x%02X\n", wStart + i % wCount, tempByte, nextByte);
       buffer[wStart + i % wCount] = tempByte | nextByte;
       nextByte = byte << (8 - xShift);
     }

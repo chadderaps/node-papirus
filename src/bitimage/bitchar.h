@@ -65,7 +65,7 @@ public:
 
   int Height() { return height; }
   int Width() { return width; }
-  int ShiftDown() { return offset.top; }
+  int ShiftDown() { return offset.top - height; }
   int ShiftRight() { return offset.left; }
   int AdvanceRight() { return advance.x; }
 

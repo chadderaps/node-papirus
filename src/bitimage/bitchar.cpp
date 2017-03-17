@@ -9,10 +9,13 @@ BitCharBuffer::BitCharBuffer(FT_GlyphSlot glyph) :
   pitch(glyph->bitmap.pitch),
   endIter(this, num_bytes)
 {
-  advance.x = glyph.advance.x;
-  advance.y = glyph.advance.y;
-  offset.left = glyph.bitmap_left;
-  offset.top = -glyph.bitmap_top;
+  advance.x = glyph->advance.x / 64;
+  advance.y = glyph->advance.y / 64;
+  offset.left = glyph->bitmap_left;
+  offset.top = glyph->bitmap_top;
+
+  printf("glyph top is %d\n", glyph->bitmap_top);
+  printf("My top is %d\n", offset.top);
 
   bits = new unsigned char[num_bytes+1];
 
