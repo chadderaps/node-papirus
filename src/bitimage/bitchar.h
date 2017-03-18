@@ -2,7 +2,7 @@
 #define bitchar_h
 
 #include <string>
-#include <vector>
+#include <map>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -52,6 +52,7 @@ public:
 
     int Row() { return row; }
     int Col() { return col; }
+    bool LastCol() { return col == (obj->pitch - 1); }
   };
 
   friend class BitCharBuffer::iterator;
@@ -65,6 +66,7 @@ public:
 
   int Height() { return height; }
   int Width() { return width; }
+  int Pitch() { return pitch; }
   int Top() { return offset.top; }
   int ShiftRight() { return offset.left; }
   int AdvanceRight() { return advance.x; }
@@ -76,11 +78,10 @@ public:
 class BitChar {
 
 private:
-  int width;
   int height;
   int pitch;
   int size;
-  vector<BitCharBuffer*> chars;
+  map<uint32_t, BitCharBuffer*> chars;
 
 public:
 
@@ -88,8 +89,8 @@ public:
   BitChar(FT_GlyphSlot glyph);
   ~BitChar();
 
-  void AddChar(FT_GlyphSlot glyph, char c);
-  BitCharBuffer * GetChar(char c);
+  void AddChar(FT_GlyphSlot glyph, uint32_t c);
+  BitCharBuffer * GetChar(uint32_t c);
 };
 
 };

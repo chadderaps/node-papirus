@@ -31,7 +31,7 @@ public:
 
   int Load(string font_path, string font_name);
 
-  int GetChar(string font_name, int size, char c, BitCharBuffer *& buffer);
+  int GetChar(string font_name, int size, uint32_t c, BitCharBuffer *& buffer);
 };
 
 /*

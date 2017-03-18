@@ -24,12 +24,16 @@ int Fonts::Load(string font_path, string font_name)
     return error;
   }
 
+  error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+
+  if (error) return error;
+
   loaded_fonts[font_name] = face;
 
   return 0;
 }
 
-int Fonts::GetChar(string name, int size, char c, BitCharBuffer*& buffer)
+int Fonts::GetChar(string name, int size, uint32_t c, BitCharBuffer*& buffer)
 {
   if (not loaded_fonts.count(name)) return -1;
 

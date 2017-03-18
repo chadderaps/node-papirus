@@ -1,5 +1,6 @@
 #include "bitimage.h"
 #include "bitimage_fonts.h"
+#include "utf8iterator.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -50,7 +51,7 @@ void BitImage::Init(Local<Object> exports)
   tpl->SetClassName(String::NewFromUtf8(isolate, "BitImage"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(tpl, "AddObject1", AddObject);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "AddObject", AddObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "GetObject", GetObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "SetValue", SetValue);
   NODE_SET_PROTOTYPE_METHOD(tpl, "Draw", Draw);
@@ -317,7 +318,7 @@ int BitImage::bitimage_object::Height()
 {
   int height = 0;
 
-  for (auto c = value.begin(); c != value.end(); ++c)
+  for (auto c = utf8iterator(value); c != value.end(); ++c)
   {
     CharFont::BitCharBuffer * image = NULL;
 
@@ -338,7 +339,7 @@ int BitImage::bitimage_object::Width()
 {
   int width = 0;
 
-  for (auto c = value.begin(); c != value.end(); ++c)
+  for (auto c = utf8iterator(value); c != value.end(); ++c)
   {
     CharFont::BitCharBuffer * image = NULL;
 
@@ -406,7 +407,7 @@ int BitImage::SetString(string str, int size, int x, int y)
 {
   int status = 0;
 
-  for (auto c = str.begin(); c != str.end(); ++c)
+  for (auto c = utf8iterator(str); c != str.end(); ++c)
   {
     CharFont::BitCharBuffer * image = NULL;
 
@@ -419,6 +420,7 @@ int BitImage::SetString(string str, int size, int x, int y)
     }
 
     printf("Shifts are 0x%08X 0x%08X\n", image->ShiftRight(), image->Top());
+    printf("Pitch is %d\n", image->Pitch());
 
     printf("Writing char %c at %u %u\n", *c, x + image->ShiftRight(), y - image->Top());
 
@@ -475,7 +477,7 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
   int xShift = x & 0x7;
 
   int hCount = image->Height();
-  int wCount = (image->Width()) / 8;
+  int wCount = image->Pitch();
   unsigned char mask = 0x00;
   bool addFinalByte = false;
 
@@ -488,7 +490,6 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
       if (maskShift) addFinalByte = true;
     }
     if (maskShift) mask = 0xFF >> maskShift;
-    wCount++;
   }
 
   printf("Char size is %u %u\n", image->Height(), image->Width());
@@ -499,12 +500,31 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
   int wStart = x / 8 + y * scrWidth;
 
   unsigned char maskByte = 0xFF << (8 - xShift);
-  unsigned char nextByte = maskByte & buffer[wStart];
+  unsigned char nextByte = 0;
 
-  int i = 0;
+  //int i = 0;
+  int offset = 0;
 
-  for (auto iter = image->begin(); iter != image->end(); ++iter, ++i)
+  for (auto iter = image->begin(); iter != image->end(); ++iter)
   {
+    unsigned char byte = *iter;
+    offset = iter.Row() * scrWidth + iter.Col();
+
+    if (maskByte && iter.Col() == 0)
+    {
+      nextByte = buffer[wStart + offset] & maskByte;
+    }
+
+    unsigned char tempByte = byte >> xShift;
+    //printf("Updated %u with 0x%02X | 0x%02X\n", wStart + i % wCount, tempByte, nextByte);
+    buffer[wStart + offset] = tempByte | nextByte;
+    nextByte = byte << (8 - xShift);
+
+    if (iter.LastCol() and addFinalByte)
+    {
+      buffer[wStart + offset + 1] = nextByte | mask;
+    }
+    /*
     unsigned char byte = *iter;
     //printf("Byte is 0x%02X\n", byte);
 
@@ -533,7 +553,7 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
       }
       wStart += scrWidth;
       nextByte = maskByte & buffer[wStart];
-    }
+    }*/
   }
 
   return 1;

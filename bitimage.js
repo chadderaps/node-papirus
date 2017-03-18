@@ -36,9 +36,17 @@ var obj = new bitimage.BitImage({
   "height": 96,
 })
 
-obj.AddObject1({
-  "name": "and that",
+temp_display = obj.AddObject({
+  "name": "temp",
   "x": 0,
+  "y": 0,
+  "size": 16,
+  "align": "TOPLEFT"
+})
+
+temp_label = obj.AddObject({
+  "name": "temp_label",
+  "x": 26,
   "y": 0,
   "size": 16,
   "align": "TOPLEFT"
@@ -47,19 +55,20 @@ obj.AddObject1({
 debug(obj)
 
 debug(obj.GetObject({
-  "name": "and that"
+  "name": "temp"
 }))
 
 debug(obj.SetValue({
-  "name": "and that",
-  "value": "12Chgd"
+  "name": "temp",
+  "value": "12"
 }))
 
 debug(obj)
 
-debug(obj.GetObject({
-  "name": "and that"
-}))
+obj.SetValue({
+  "name": "temp_label",
+  "value": "F°P"
+})
 
 obj.Draw(function (err, image) {
   if (err) {
@@ -72,7 +81,7 @@ obj.Draw(function (err, image) {
 
   console.log(image.length);
 
-  for (let i = 0; i < image.length; i+=count) {
+  for (let i = 0; i < 500; i+=count) {
     bits = ''
     for (let j = 0; j < draw; j++) {
       b = image[i+j];

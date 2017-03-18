@@ -26,10 +26,8 @@ BitCharBuffer::BitCharBuffer(FT_GlyphSlot glyph) :
 }
 
 BitChar::BitChar(FT_GlyphSlot glyph) :
-  width(glyph->bitmap.width),
   height(glyph->bitmap.rows),
-  pitch(glyph->bitmap.pitch),
-  chars(256, NULL)
+  pitch(glyph->bitmap.pitch)
 {
   size = pitch * height;
 }
@@ -38,26 +36,24 @@ BitChar::~BitChar()
 {
   for (auto iter = chars.begin(); iter != chars.end(); ++iter)
   {
-    if (*iter != NULL) delete *iter;
+    if (iter->second != NULL) delete iter->second;
   }
 }
 
-void BitChar::AddChar(FT_GlyphSlot glyph, char c)
+void BitChar::AddChar(FT_GlyphSlot glyph, uint32_t c)
 {
-  FT_Bitmap * bitmap = &glyph->bitmap;
-
   chars[c] = new BitCharBuffer(glyph);
 }
 
-BitCharBuffer * BitChar::GetChar(char c)
+BitCharBuffer * BitChar::GetChar(uint32_t c)
 {
-  return chars[c];
+  if (chars.count(c)) return chars[c];
+  else return NULL;
 }
 
 BitCharBuffer::iterator::iterator(BitCharBuffer * bcb, int offset) :
   obj(bcb), idx(offset)
 {
-  printf("0x%08X\n", (unsigned long)obj);
   CalcCoordinates();
 }
 
