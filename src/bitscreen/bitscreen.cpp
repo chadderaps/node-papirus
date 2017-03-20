@@ -1,10 +1,12 @@
-#include "bitimage.h"
-#include "bitimage_fonts.h"
+#include "bitscreen.h"
+#include "bitscreen_util.h"
+#include "bitobject.h"
+#include "bitfonts.h"
 #include "utf8iterator.h"
 #include <stdio.h>
 #include <string.h>
 
-namespace bitimage
+namespace bitscreen
 {
 
 using v8::Persistent;
@@ -24,40 +26,20 @@ using v8::Context;
 
 Persistent<Function> BitImage::constructor;
 
-template<class T>
-Local<T> GetParm(Isolate * isolate, Local<Object> obj, string str);
-
-template<>
-Local<Integer> GetParm(Isolate * isolate, Local<Object> obj, string str)
-{
-  Local<Value> val = obj->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, str.c_str())).ToLocalChecked();
-  Local<Integer> ret = val->ToInteger(isolate->GetCurrentContext()).ToLocalChecked();
-  return ret;
-}
-
-template<>
-Local<String> GetParm(Isolate * isolate, Local<Object> obj, string str)
-{
-  Local<Value> val = obj->Get(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, str.c_str())).ToLocalChecked();
-  Local<String> ret = val->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-  return ret;
-}
-
 void BitImage::Init(Local<Object> exports)
 {
   Isolate * isolate = exports->GetIsolate();
 
   Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-  tpl->SetClassName(String::NewFromUtf8(isolate, "BitImage"));
+  tpl->SetClassName(String::NewFromUtf8(isolate, "BitScreen"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "AddObject", AddObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "GetObject", GetObject);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "SetValue", SetValue);
   NODE_SET_PROTOTYPE_METHOD(tpl, "Draw", Draw);
 
   constructor.Reset(isolate, tpl->GetFunction());
-  exports->Set(String::NewFromUtf8(isolate, "BitImage"), tpl->GetFunction());
+  exports->Set(String::NewFromUtf8(isolate, "BitScreen"), tpl->GetFunction());
 }
 
 void BitImage::New(const FunctionCallbackInfo<Value>& args)
@@ -107,7 +89,11 @@ void BitImage::AddObject(const FunctionCallbackInfo<Value>& args)
 
   string strName(*charName);
 
-  obj->objects[strName] = bitimage_object(obj, *charName, x->Value(), y->Value(), size->Value(), alignVal);
+  BitObject::NewInstance(args);
+
+  Local<Object> bObj = args.GetReturnValue().Get()->ToObject(isolate);
+
+  obj->objects[strName] = ObjectWrap::Unwrap<BitObject>(bObj);
 }
 
 void BitImage::GetObject(const FunctionCallbackInfo<Value>& args)
@@ -122,45 +108,9 @@ void BitImage::GetObject(const FunctionCallbackInfo<Value>& args)
   Local<String> name = GetParm<String>(isolate, parms, "name");
   String::Utf8Value charName(name);
 
-  bitimage_object & bObj = obj->objects[*charName];
+  BitObject * bObj = obj->objects[*charName];
 
-  Local<String> value = String::NewFromUtf8(isolate, bObj.value.c_str());
-  Local<Integer> x = Integer::New(isolate, bObj.x);
-  Local<Integer> y = Integer::New(isolate, bObj.y);
-  Local<Integer> size = Integer::New(isolate, bObj.size);
-  Local<String> align = String::NewFromUtf8(isolate, GetAlignmentString(bObj.align).c_str());
-
-  Local<Object> retObj = Object::New(isolate);
-
-  retObj->Set(context, String::NewFromUtf8(isolate, "name"), name);
-  retObj->Set(context, String::NewFromUtf8(isolate, "x"), x);
-  retObj->Set(context, String::NewFromUtf8(isolate, "y"), y);
-  retObj->Set(context, String::NewFromUtf8(isolate, "size"), size);
-  retObj->Set(context, String::NewFromUtf8(isolate, "align"), align);
-  retObj->Set(context, String::NewFromUtf8(isolate, "value"), value);
-
-  args.GetReturnValue().Set(retObj);
-}
-
-void BitImage::SetValue(const FunctionCallbackInfo<Value>& args)
-{
-  Isolate * isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
-
-  BitImage * obj = ObjectWrap::Unwrap<BitImage>(args.Holder());
-
-  Local<Object> parms = args[0]->ToObject(context).ToLocalChecked();
-
-  Local<String> name = GetParm<String>(isolate, parms, "name");
-  Local<String> value = GetParm<String>(isolate, parms, "value");
-  String::Utf8Value charName(name);
-  String::Utf8Value charValue(value);
-
-  bitimage_object & bObj = obj->objects[*charName];
-
-  bObj.value = *charValue;
-
-  GetObject(args);
+  args.GetReturnValue().Set(bObj->persistent());
 }
 
 void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
@@ -176,36 +126,34 @@ void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
 
   for (auto iter = obj->objects.begin(); iter != obj->objects.end(); ++iter)
   {
-    auto & bObj = iter->second;
+    auto bObj = iter->second;
 
-    printf("Drawing object %s\n", bObj.name.c_str());
-    printf("  Value is %s\n", bObj.value.c_str());
+    printf("Drawing object %s\n", bObj->Name().c_str());
+    printf("  Value is %s\n", bObj->ValueStr().c_str());
 
-    int x = bObj.x;
-    int y = bObj.y;
+    int x = bObj->X();
+    int y = bObj->Y();
 
-    printf("Alignment is 0x%08X\n", bObj.align);
-
-    if (bObj.align & ALIGNMENT_TOP)
+    if (bObj->Align() & ALIGNMENT_TOP)
     {
-      y += bObj.Height();
+      y += bObj->Height();
     }
-    else if ((bObj.align & ALIGNMENT_BOTTOM) == 0)
+    else if ((bObj->Align() & ALIGNMENT_BOTTOM) == 0)
     {
-      y += bObj.Height() / 2;
-      printf("Height was set to %u\n", bObj.Height() / 2);
+      y += bObj->Height() / 2;
+      printf("Height was set to %u\n", bObj->Height() / 2);
     }
 
-    if (bObj.align & ALIGNMENT_RIGHT)
+    if (bObj->Align() & ALIGNMENT_RIGHT)
     {
-      x -= bObj.Width();
+      x -= bObj->Width();
     }
-    else if ((bObj.align & ALIGNMENT_LEFT) == 0)
+    else if ((bObj->Align() & ALIGNMENT_LEFT) == 0)
     {
-      x -= bObj.Width() / 2;
+      x -= bObj->Width() / 2;
     }
 
-    int status = obj->SetString(bObj.value, bObj.size, x, y);
+    int status = obj->SetString(bObj->ValueStr(), bObj->FontSize(), x, y);
 
     if (status < 0)
     {
@@ -299,56 +247,6 @@ BitImage::ALIGNMENT BitImage::GetAlignment(string align)
   }
 
   return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
-}
-
-string BitImage::GetAlignmentString(BitImage::ALIGNMENT align)
-{
-  string ret("");
-
-  if (align & ALIGNMENT_BOTTOM) ret += "BOTTOM";
-  if (align & ALIGNMENT_TOP) ret += "TOP";
-
-  if (align & ALIGNMENT_RIGHT) ret += "RIGHT";
-  if (align & ALIGNMENT_LEFT) ret += "LEFT";
-
-  return ret;
-}
-
-int BitImage::bitimage_object::Height()
-{
-  int height = 0;
-
-  for (auto c = utf8iterator(value); c != value.end(); ++c)
-  {
-    CharFont::BitCharBuffer * image = NULL;
-
-    int err = parent->fonts.GetChar("Menlo", size, *c, image);
-
-    if (image->Top() > height)
-    {
-      height = image->Top();
-    }
-  }
-
-  printf("BitImage object height is %d\n", height);
-
-  return height;
-}
-
-int BitImage::bitimage_object::Width()
-{
-  int width = 0;
-
-  for (auto c = utf8iterator(value); c != value.end(); ++c)
-  {
-    CharFont::BitCharBuffer * image = NULL;
-
-    int err = parent->fonts.GetChar("Menlo", size, *c, image);
-
-    width += image->AdvanceRight();
-  }
-
-  return width;
 }
 
 bool BitImage::alloc()
@@ -476,8 +374,6 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
 
   int xShift = x & 0x7;
 
-  int hCount = image->Height();
-  int wCount = image->Pitch();
   unsigned char mask = 0x00;
   bool addFinalByte = false;
 
@@ -495,7 +391,6 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
   printf("Char size is %u %u\n", image->Height(), image->Width());
   printf("X Shift is %u\n", xShift);
 
-  int count = hCount * wCount;
   int scrWidth = width / 8;
   int wStart = x / 8 + y * scrWidth;
 

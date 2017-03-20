@@ -1,7 +1,8 @@
 #include <node.h>
 #include <node_buffer.h>
-#include "bitimage_fonts.h"
-#include "bitimage.h"
+#include "bitfonts.h"
+#include "bitscreen.h"
+#include "bitobject.h"
 #include <string.h>
 
 namespace demo {
@@ -17,7 +18,7 @@ namespace demo {
   using v8::Exception;
   using v8::Null;
   using v8::Context;
-  using namespace bitimage;
+  using namespace bitscreen;
 
   void Method(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = args.GetIsolate();
@@ -199,6 +200,7 @@ namespace demo {
 
   void init(Local<Object> exports) {
     BitImage::Init(exports);
+    BitObject::Init(exports->GetIsolate());
     NODE_SET_METHOD(exports, "hello", Method);
     NODE_SET_METHOD(exports, "convert", Convert);
     NODE_SET_METHOD(exports, "addchar", AddChar);

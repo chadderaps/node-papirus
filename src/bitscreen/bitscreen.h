@@ -3,14 +3,15 @@
 
 #include <string>
 #include <map>
-#include "bitimage_fonts.h"
+#include "bitfonts.h"
+#include "bitobject.h"
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 
 using namespace std;
 
-namespace bitimage
+namespace bitscreen
 {
 
 class BitImage : public node::ObjectWrap
@@ -28,33 +29,13 @@ public:
     ALIGNMENT_RIGHT = 0x8
   };
 
-  struct bitimage_object
-  {
-    string name;
-    BitImage * parent;
-    int x, y, size;
-    ALIGNMENT align;
-    string value;
-
-    bitimage_object(BitImage * p, string n, int ex, int why, int s, ALIGNMENT a) :
-      parent(p), name(n), x(ex), y(why), size(s), align(a), value("")
-    {}
-
-    bitimage_object() :
-      parent(NULL), name(""), x(0), y(0), size(16), align(ALIGNMENT_TOP), value("")
-    {}
-
-    int Height();
-    int Width();
-  };
-
   CharFont::Fonts fonts;
 
   int width;
   int height;
   string name;
   unsigned char * buffer;
-  map<string, bitimage_object> objects;
+  map<string, BitObject*> objects;
 
   BitImage();
 

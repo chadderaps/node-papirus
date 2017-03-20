@@ -1,4 +1,4 @@
-#include "bitimage_fonts.h"
+#include "bitfonts.h"
 
 FT_Library library;
 

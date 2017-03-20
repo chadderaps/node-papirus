@@ -1,14 +1,14 @@
-var bitimage = require('./build/Release/bitimage')
+var bitscreen = require('./build/Debug/bitscreen')
 var Jimp = require('jimp')
 var debug = require('debug')('papirus')
 var fs = require('fs')
 
-console.log(bitimage.hello())
+console.log(bitscreen.hello())
 
 var buf = new Buffer(100).fill(0xFF);
 console.log(buf)
 
-bitimage.convert(buf, function (err, val) {
+bitscreen.convert(buf, function (err, val) {
   if (err) {
     console.log('Got Error')
     console.log(err)
@@ -18,7 +18,7 @@ bitimage.convert(buf, function (err, val) {
   console.log(val)
 })
 
-bitimage.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) {
+bitscreen.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) {
   if (err) {
     console.log(err)
     return
@@ -30,7 +30,7 @@ bitimage.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) 
   }
 })
 
-var obj = new bitimage.BitImage({
+var obj = new bitscreen.BitScreen({
   "name": "stuff",
   "width": 200,
   "height": 96,
@@ -44,31 +44,26 @@ temp_display = obj.AddObject({
   "align": "TOPLEFT"
 })
 
+temp_display.value = "12"
+debug("TempDisplay")
+debug(temp_display);
+
 temp_label = obj.AddObject({
   "name": "temp_label",
-  "x": 26,
+  "x": 0,
   "y": 0,
   "size": 16,
-  "align": "TOPLEFT"
+  "align": "TOPLEFT",
+  "alignToObj": temp_display
 })
 
-debug(obj)
+debug(temp_label)
 
 debug(obj.GetObject({
   "name": "temp"
 }))
 
-debug(obj.SetValue({
-  "name": "temp",
-  "value": "12"
-}))
-
-debug(obj)
-
-obj.SetValue({
-  "name": "temp_label",
-  "value": "F°P"
-})
+temp_label.value = "°F"
 
 obj.Draw(function (err, image) {
   if (err) {

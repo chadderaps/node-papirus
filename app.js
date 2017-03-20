@@ -1,7 +1,7 @@
 require('coffee-script/register')
 var debug = require('debug')('papirus')
 var Jimp = require('jimp')
-var bitimage = require('./build/Release/bitimage')
+var bitscreen = require('./build/Release/bitscreen')
 
 var PaPiRus = require('./src/epd')
 
@@ -9,7 +9,7 @@ module.exports = PaPiRus
 
 var screen = new PaPiRus({'auto': true})
 
-screen_buffer = new bitimage.BitImage({
+screen_buffer = new bitscreen.BitScreen({
   "name":"screen",
   "width": screen.width(),
   "height": screen.height()
