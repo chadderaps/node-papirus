@@ -15,7 +15,7 @@ screen_buffer = new bitscreen.BitScreen({
   "height": screen.height()
 })
 
-screen_buffer.AddObject1({
+screen_buffer.AddObject({
   "name": "temp",
   "x": 0,
   "y": 0,
@@ -23,7 +23,7 @@ screen_buffer.AddObject1({
   "align": "TOPLEFT",
 })
 
-screen_buffer.AddObject1({
+screen_buffer.AddObject({
   "name": "temp_label",
   "x": 25,
   "y": 0,
@@ -38,7 +38,7 @@ screen_buffer.SetValue({
 
 screen_buffer.SetValue({
   "name": "temp_label",
-  "value": "Chgd",
+  "value": "°F",
 }) 
 
 screen_buffer.Draw(function (err, image) {
