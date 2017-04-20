@@ -11,7 +11,9 @@ namespace bitscreen
 
 using v8::Persistent;
 using v8::FunctionCallbackInfo;
+using v8::PropertyCallbackInfo;
 using v8::FunctionTemplate;
+using v8::ObjectTemplate;
 using v8::Isolate;
 using v8::Local;
 using v8::MaybeLocal;
@@ -31,12 +33,19 @@ void BitImage::Init(Local<Object> exports)
   Isolate * isolate = exports->GetIsolate();
 
   Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-  tpl->SetClassName(String::NewFromUtf8(isolate, "BitScreen"));
+  tpl->SetClassName(String::NewFromUtf8(isolate, "BitImage"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "AddObject", AddObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "GetObject", GetObject);
   NODE_SET_PROTOTYPE_METHOD(tpl, "Draw", Draw);
+
+  Local<ObjectTemplate> objTpl = tpl->InstanceTemplate();
+
+  objTpl->SetAccessor(String::NewFromUtf8(isolate, "width"), GetWidth);
+  objTpl->SetAccessor(String::NewFromUtf8(isolate, "height"), GetHeight);
+  objTpl->SetAccessor(String::NewFromUtf8(isolate, "name"), GetName);
+  objTpl->SetAccessor(String::NewFromUtf8(isolate, "dpi"), GetDPI);
 
   constructor.Reset(isolate, tpl->GetFunction());
   exports->Set(String::NewFromUtf8(isolate, "BitScreen"), tpl->GetFunction());
@@ -52,9 +61,10 @@ void BitImage::New(const FunctionCallbackInfo<Value>& args)
     Local<String> name = GetParm<String>(isolate, parms, "name");
     Local<Integer> width = GetParm<Integer>(isolate, parms, "width");
     Local<Integer> height = GetParm<Integer>(isolate, parms, "height");
+    Local<Integer> dpi = GetParm<Integer>(isolate, parms, "dpi");
     BitImage * obj = new BitImage();
     String::Utf8Value charName(name);
-    obj->Init(*charName, width->Value(), height->Value());
+    obj->Init(*charName, width->Value(), height->Value(), dpi->Value());
 
     obj->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
@@ -75,31 +85,17 @@ void BitImage::AddObject(const FunctionCallbackInfo<Value>& args)
   Isolate * isolate = args.GetIsolate();
   BitImage * obj = ObjectWrap::Unwrap<BitImage>(args.Holder());
 
-  Local<Object> parms = args[0]->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-
-  Local<String> name = GetParm<String>(isolate, parms, "name");
-  Local<String> align = GetParm<String>(isolate, parms, "align");
-  Local<Integer> x = GetParm<Integer>(isolate, parms, "x");
-  Local<Integer> y = GetParm<Integer>(isolate, parms, "y");
-  Local<Integer> size = GetParm<Integer>(isolate, parms, "size");
-
-  String::Utf8Value charName(name);
-  String::Utf8Value charAlign(align);
-  ALIGNMENT alignVal = GetAlignment(*charAlign);
-
-  string strName(*charName);
-
   BitObject::NewInstance(args);
 
-  Local<Object> bObj = args.GetReturnValue().Get()->ToObject(isolate);
+  Local<Object> bObjVal = args.GetReturnValue().Get()->ToObject(isolate);
+  BitObject * bObj = ObjectWrap::Unwrap<BitObject>(bObjVal);
 
-  obj->objects[strName] = ObjectWrap::Unwrap<BitObject>(bObj);
+  obj->objects[bObj->Name()] = bObj;
 }
 
 void BitImage::GetObject(const FunctionCallbackInfo<Value>& args)
 {
   Isolate * isolate = args.GetIsolate();
-  Local<Context> context = isolate->GetCurrentContext();
 
   BitImage * obj = ObjectWrap::Unwrap<BitImage>(args.Holder());
 
@@ -211,42 +207,26 @@ Local<Value> BitImage::Buffer(Isolate * isolate)
   return out;
 }
 
-BitImage::ALIGNMENT BitImage::GetAlignment(string align)
+void BitImage::GetWidth(Local<String> property, const PropertyCallbackInfo<Value>& info)
 {
-  if (align.compare("TOP") == 0)
-  {
-    return ALIGNMENT_TOP;
-  }
-  else if (align.compare("TOPLEFT") == 0)
-  {
-    return ALIGNMENT(ALIGNMENT_TOP | ALIGNMENT_LEFT);
-  }
-  else if (align.compare("TOPRIGHT") == 0)
-  {
-    return ALIGNMENT(ALIGNMENT_TOP | ALIGNMENT_RIGHT);
-  }
-  else if (align.compare("BOTTOMRIGHT") == 0)
-  {
-    return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_RIGHT);
-  }
-  else if (align.compare("BOTTOMLEFT") == 0)
-  {
-    return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
-  }
-  else if (align.compare("BOTTOM") == 0)
-  {
-    return ALIGNMENT_BOTTOM;
-  }
-  else if (align.compare("RIGHT") == 0)
-  {
-    return ALIGNMENT_RIGHT;
-  }
-  else if (align.compare("LEFT") == 0)
-  {
-    return ALIGNMENT_LEFT;
-  }
-
-  return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
+  BitImage * obj = ObjectWrap::Unwrap<BitImage>(info.Holder());
+  info.GetReturnValue().Set(obj->width);
+}
+void BitImage::GetHeight(Local<String> property, const PropertyCallbackInfo<Value>& info)
+{
+  BitImage * obj = ObjectWrap::Unwrap<BitImage>(info.Holder());
+  info.GetReturnValue().Set(obj->height);
+}
+void BitImage::GetDPI(Local<String> property, const PropertyCallbackInfo<Value>& info)
+{
+  BitImage * obj = ObjectWrap::Unwrap<BitImage>(info.Holder());
+  info.GetReturnValue().Set(obj->dpi);
+}
+void BitImage::GetName(Local<String> property, const PropertyCallbackInfo<Value>& info)
+{
+  BitImage * obj = ObjectWrap::Unwrap<BitImage>(info.Holder());
+  Local<String> str = String::NewFromUtf8(info.GetIsolate(), obj->name.c_str());
+  info.GetReturnValue().Set(str);
 }
 
 bool BitImage::alloc()
@@ -283,15 +263,16 @@ BitImage::~BitImage()
   if (buffer) delete buffer;
 }
 
-bool BitImage::Init(string n, int w, int h)
+bool BitImage::Init(string n, int w, int h, int d)
 {
-  name = n;
   width = w;
   height = h;
+  dpi = d;
+  name = n;
 
   if (not alloc()) return false;
 
-  fonts.Init(96);
+  fonts.Init(dpi);
 
   if (fonts.Load("fonts/Menlo.ttc", "Menlo"))
   {

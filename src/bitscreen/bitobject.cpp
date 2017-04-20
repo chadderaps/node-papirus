@@ -39,7 +39,7 @@ void BitObject::Init(Isolate * isolate)
   objTpl->SetAccessor(String::NewFromUtf8(isolate, "height"), GetHeight);
   objTpl->SetAccessor(String::NewFromUtf8(isolate, "width"), GetWidth);
   objTpl->SetAccessor(String::NewFromUtf8(isolate, "align"), GetAlign);
-  objTpl->SetAccessor(String::NewFromUtf8(isolate, "alignToObj"), GetAlignTo);
+  objTpl->SetAccessor(String::NewFromUtf8(isolate, "alignTo"), GetAlignTo);
 
   constructor.Reset(isolate, tpl->GetFunction());
 }
@@ -84,16 +84,24 @@ void BitObject::New(const FunctionCallbackInfo<Value>& args)
     Local<Integer> x = GetParm<Integer>(isolate, parms, "x");
     Local<Integer> y = GetParm<Integer>(isolate, parms, "y");
     Local<Integer> size = GetParm<Integer>(isolate, parms, "size");
-    Local<Object> alignObjVal = GetParm<Object>(isolate, parms, "alignToObj");
+    Local<Object> alignToVal = GetParm<Object>(isolate, parms, "alignTo");
 
     ALIGNMENT alignVal = GetAlignment(*alignStr);
 
     BitObject * obj = new BitObject(screen, *nameStr, "", x->Value(), y->Value(), alignVal);
 
-    if (not alignObjVal.IsEmpty())
+    if (not alignToVal.IsEmpty())
     {
-      BitObject * alignObj = ObjectWrap::Unwrap<BitObject>(alignObjVal);
-      obj->alignTo = alignObj;
+      Local<Object> alignToObj = GetParm<Object>(isolate, alignToVal, "obj");
+      String::Utf8Value alignToStr(GetParm<String>(isolate, alignToVal, "align"));
+
+      if (not alignToObj.IsEmpty())
+      {
+        printf("---------- Got Align Obj -----------\n");
+        BitObject * alignObj = ObjectWrap::Unwrap<BitObject>(alignToObj);
+        obj->alignTo.obj = alignObj;
+        obj->alignTo.align = GetAlignment(*alignToStr);
+      }
     }
 
     obj->fontSize = size->Value();
@@ -170,19 +178,29 @@ void BitObject::GetAlignTo(v8::Local<v8::String> property, const v8::PropertyCal
   Isolate * isolate = info.GetIsolate();
   BitObject * obj = ObjectWrap::Unwrap<BitObject>(info.Holder());
 
-  if (obj->alignTo)
+  Local<Object> alignToObj = Object::New(isolate);
+
+  if (obj->alignTo.obj)
   {
-    info.GetReturnValue().Set(obj->alignTo->persistent());
+    Local<Object> alignObj = Local<Object>::New(isolate, obj->alignTo.obj->persistent());
+    alignToObj->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "obj"), alignObj);
+    Local<String> alignStr = String::NewFromUtf8(isolate, GetAlignmentString(obj->alignTo.align).c_str());
+    alignToObj->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "align"), alignStr);
   }
   else
   {
-    info.GetReturnValue().Set(Null(isolate));
+    alignToObj->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "obj"), Null(isolate));
+    alignToObj->Set(isolate->GetCurrentContext(), String::NewFromUtf8(isolate, "align"), Null(isolate));
   }
+
+  info.GetReturnValue().Set(alignToObj);
 }
 
 BitObject::BitObject(BitImage * s, string n, string v, int ex, int why, ALIGNMENT a) :
-  screen(s), name(n), value(v), x(ex), y(why), align(a), alignTo(NULL)
+  screen(s), name(n), value(v), x(ex), y(why), align(a)
 {
+  alignTo.obj = NULL;
+  alignTo.align = ALIGNMENT_DEFAULT;
   fontName = "Menlo";
 }
 
@@ -196,19 +214,19 @@ BitObject::ALIGNMENT BitObject::GetAlignment(string align)
   }
   else if (align.compare("TOPLEFT") == 0)
   {
-    return ALIGNMENT(ALIGNMENT_TOP | ALIGNMENT_LEFT);
+    return ALIGNMENT(ALIGNMENT_TOPLEFT);
   }
   else if (align.compare("TOPRIGHT") == 0)
   {
-    return ALIGNMENT(ALIGNMENT_TOP | ALIGNMENT_RIGHT);
+    return ALIGNMENT(ALIGNMENT_TOPRIGHT);
   }
   else if (align.compare("BOTTOMRIGHT") == 0)
   {
-    return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_RIGHT);
+    return ALIGNMENT(ALIGNMENT_BOTTOMRIGHT);
   }
   else if (align.compare("BOTTOMLEFT") == 0)
   {
-    return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
+    return ALIGNMENT_BOTTOMLEFT;
   }
   else if (align.compare("BOTTOM") == 0)
   {
@@ -223,7 +241,7 @@ BitObject::ALIGNMENT BitObject::GetAlignment(string align)
     return ALIGNMENT_LEFT;
   }
 
-  return ALIGNMENT(ALIGNMENT_BOTTOM | ALIGNMENT_LEFT);
+  return ALIGNMENT_TOPLEFT;
 }
 
 string BitObject::GetAlignmentString(BitObject::ALIGNMENT align)
@@ -243,25 +261,25 @@ string BitObject::GetAlignmentString(BitObject::ALIGNMENT align)
 
 int BitObject::X()
 {
-  if (not alignTo)
+  if (not alignTo.obj)
   {
     return x;
   }
   else
   {
-    return x + alignTo->X() + alignTo->Width();
+    return x + alignTo.obj->X() + alignTo.obj->Width();
   }
 }
 
 int BitObject::Y()
 {
-  if (not alignTo)
+  if (not alignTo.obj)
   {
     return y;
   }
   else
   {
-    return y + alignTo->Y();
+    return y + alignTo.obj->Y();
   }
 }
 

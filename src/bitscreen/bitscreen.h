@@ -33,6 +33,7 @@ public:
 
   int width;
   int height;
+  int dpi;
   string name;
   unsigned char * buffer;
   map<string, BitObject*> objects;
@@ -46,7 +47,7 @@ public:
 
   int AddChar(CharFont::BitCharBuffer * image, int x, int y);
 
-  bool Init(string n, int w, int h);
+  bool Init(string n, int w, int h, int d);
 
   int SetChar(char c, int size, int x, int y);
   int SetString(string str, int size, int x, int y);
@@ -67,6 +68,11 @@ public:
   static void GetObject(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetValue(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void Draw(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+  static void GetWidth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void GetHeight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void GetDPI(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void GetName(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
 };
 
 };

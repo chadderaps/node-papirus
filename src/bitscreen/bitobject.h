@@ -21,7 +21,12 @@ class BitObject : public node::ObjectWrap
     ALIGNMENT_TOP = 0x1,
     ALIGNMENT_BOTTOM = 0x2,
     ALIGNMENT_LEFT = 0x4,
-    ALIGNMENT_RIGHT = 0x8
+    ALIGNMENT_RIGHT = 0x8,
+    ALIGNMENT_TOPLEFT = ALIGNMENT_TOP | ALIGNMENT_LEFT,
+    ALIGNMENT_TOPRIGHT = ALIGNMENT_TOP | ALIGNMENT_RIGHT,
+    ALIGNMENT_BOTTOMLEFT = ALIGNMENT_BOTTOM | ALIGNMENT_LEFT,
+    ALIGNMENT_BOTTOMRIGHT = ALIGNMENT_BOTTOM | ALIGNMENT_RIGHT,
+    ALIGNMENT_DEFAULT = ALIGNMENT_TOPLEFT
   };
 
 public:
@@ -65,7 +70,10 @@ private:
   int fontSize;
   string fontName;
   ALIGNMENT align;
-  BitObject * alignTo;
+  struct {
+    BitObject * obj;
+    ALIGNMENT align;
+  } alignTo;
 };
 
 };

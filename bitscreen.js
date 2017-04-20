@@ -1,40 +1,18 @@
-var bitscreen = require('./build/Debug/bitscreen')
+var bitscreen = require('./build/Release/bitscreen')
 var Jimp = require('jimp')
 var debug = require('debug')('papirus')
 var fs = require('fs')
 
 console.log(bitscreen.hello())
 
-var buf = new Buffer(100).fill(0xFF);
-console.log(buf)
-
-bitscreen.convert(buf, function (err, val) {
-  if (err) {
-    console.log('Got Error')
-    console.log(err)
-    return
-  }
-
-  console.log(val)
-})
-
-bitscreen.addchar(buf, '12', {'size': 16, 'x': 0, 'y': 0}, function (err, image) {
-  if (err) {
-    console.log(err)
-    return
-  }
-  let count = 25;
-
-  for (let i = 0; i < image.length; i+=count) {
-    debug(image.slice(i,i+count));
-  }
-})
-
 var obj = new bitscreen.BitScreen({
   "name": "stuff",
   "width": 200,
   "height": 96,
+  "dpi": 96,
 })
+
+debug(obj);
 
 temp_display = obj.AddObject({
   "name": "temp",
@@ -54,10 +32,17 @@ temp_label = obj.AddObject({
   "y": 0,
   "size": 16,
   "align": "TOPLEFT",
-  "alignToObj": temp_display
+  "alignTo": {
+    "obj": temp_display,
+    "align": "BOTTOMRIGHT"
+  }
 })
 
 debug(temp_label)
+
+temp_debug = temp_label.alignTo.obj
+
+temp_debug.value = "30"
 
 debug(obj.GetObject({
   "name": "temp"
