@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 debug = require('debug') 'papirus'
 Jimp = require 'jimp'
-bitimage = require '../build/Release/bitimage'
+bitscreen = require '../build/Debug/bitscreen'
 
 module.exports =
 class EPD
@@ -21,35 +21,61 @@ class EPD
 
     @settings = Object.assign {}, defaultParams, params
 
+    @dummy = process.env.DUMMY_PAPIRUS?
+
     @loadVersion()
     @loadPanel()
 
+    @screen = new bitscreen.BitScreen {
+      name: "PaPirus"
+      width: @width()
+      height: @height()
+      dpi: 96
+    }
+
 
   loadVersion: () ->
-    versionFile = path.join @settings.epd_path, 'version'
-    versionInfo = fs.readFileSync versionFile, { encoding: 'utf8' }
-    debug versionInfo
-    @version = versionInfo.split('\n')[0]
+    if @dummy
+      @version = '1.0.0'
+    else
+      versionFile = path.join @settings.epd_path, 'version'
+      versionInfo = fs.readFileSync versionFile, { encoding: 'utf8' }
+      debug versionInfo
+      @version = versionInfo.split('\n')[0]
 
   loadPanel: () ->
-    panelFile = path.join @settings.epd_path, 'panel'
-    panelInfo = fs.readFileSync panelFile, { encoding: 'utf8' }
-    panelLines = panelInfo.split '\n'
 
-    patt = ///^([A-Za-z]+)\s+(\d+\.\d+)\s+(\d+)x(\d+)\s+COG\s+(\d+)\s+FILM\s+(\d+)\s*$///
+    if not @dummy
+      panelFile = path.join @settings.epd_path, 'panel'
+      panelInfo = fs.readFileSync panelFile, { encoding: 'utf8' }
+      panelLines = panelInfo.split '\n'
 
-    panelData = panelLines[0].match patt
+      patt = ///^([A-Za-z]+)\s+(\d+\.\d+)\s+(\d+)x(\d+)\s+COG\s+(\d+)\s+FILM\s+(\d+)\s*$///
 
-    throw new Error('invalid panel string') if not panelData
+      panelData = panelLines[0].match patt
 
-    @settings.panel = "#{panelData[1]} #{panelData[2]}"
-    @settings.width = parseInt panelData[3]
-    @settings.height = parseInt panelData[4]
-    @settings.cog = parseInt panelData[5]
-    @settings.film = parseInt panelData[6]
+      throw new Error('invalid panel string') if not panelData
+
+      @settings.panel = "#{panelData[1]} #{panelData[2]}"
+      @settings.width = parseInt panelData[3]
+      @settings.height = parseInt panelData[4]
+      @settings.cog = parseInt panelData[5]
+      @settings.film = parseInt panelData[6]
 
     throw new Error('invalid panel geometry') if @settings.width < 1 or @settings.height < 1
 
+  addText: (objName, text, start, fontSize, align) ->
+    obj = @screen.AddObject {
+      name: objName
+      x: start.x
+      y: start.y
+      align: align
+      size: fontSize
+    }
+
+    obj.value = text
+
+    return obj
 
   width: () ->
     return @settings.width
@@ -63,31 +89,21 @@ class EPD
   numBytes: () ->
     return @numPixels() / 8
 
-  display: (image, callback) ->
-
-    image.greyscale()
-
-    if @width() is not image.bitmap.width or @height() is not image.bitmap.height
-      err = Error('Image does not fit screen')
-      return callback err, null
+  display: (callback) ->
 
     debug 'start'
     #bitimage.convert image.bitmap.data, (err, data) =>
-    @convert image, (err, data) =>
-      debug 'done convert'
-      writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
-      fs.writeFile writePath, data, {
-        encoding: 'binary'
-      }, (err) =>
-        if not err? and @settings.auto
-          debug 'done writing image'
-          return @update(callback)
-        else
-          return callback err, @
+    @screen.Draw (err, data) =>
+      debug 'screen buffer built'
+      @writeBuf data, callback
 
     return
 
   writeBuf: (buf, callback) ->
+
+    if @dummy
+      @displayBuf buf
+      return callback null, @
 
     writePath = path.join @settings.epd_path, 'LE', 'display_inverse'
     fs.writeFile writePath, buf, {
@@ -99,28 +115,21 @@ class EPD
       else
         return callback err, @
 
+  displayBuf: (buf) ->
+    row = 50
+    col = 15
 
-  convert: (image, callback) ->
-    arr = new Array(@numBytes()).fill 0x00
-    data = image.bitmap.data
+    for i in [0..row-1]
+      bits = ''
+      for j in [0..col-1]
+        b = buf[i*25+j]
+        for k in [0..7]
+          if (b & (1 << (7-k)))
+            bits += '.'
+          else
+            bits += ' '
 
-    image.scan 0, 0, @width(), @height(), (x, y, idx) =>
-      pixel = data[idx]
-      #debug "#{x}, #{y}, #{idx}"
-      if pixel != data[idx+1] and pixel != data[idx+2]
-        debug 'Got non matching pixels'
-      bit = if pixel > 250 then 1 else 0
-
-      pixelIdx = y * @width() + x
-      arrIdx = Math.floor pixelIdx / 8
-      bitIdx = pixelIdx % 8
-
-      arr[arrIdx] = arr[arrIdx] | bit << (7-bitIdx)
-
-    buf = new Buffer(arr)
-
-    callback null, buf
-
+      debug(bits)
 
   clear: (callback) ->
     @command 'C', callback

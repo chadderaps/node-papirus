@@ -1,7 +1,7 @@
 require('coffee-script/register')
 var debug = require('debug')('papirus')
 var Jimp = require('jimp')
-var bitscreen = require('./build/Release/bitscreen')
+var bitscreen = require('./build/Debug/bitscreen')
 
 var PaPiRus = require('./src/epd')
 
@@ -9,45 +9,18 @@ module.exports = PaPiRus
 
 var screen = new PaPiRus({'auto': true})
 
-screen_buffer = new bitscreen.BitScreen({
-  "name":"screen",
-  "width": screen.width(),
-  "height": screen.height()
-})
+text1 = screen.addText('hi', 'A hi', {'x': 0, 'y': 0}, 16, 'TOPLEFT')
+text2 = screen.addText('you', 'you', {'x': 4, 'y': 0}, 16, 'TOPLEFT')
+text3 = screen.addText('and me', 'and me', {'x': -20, 'y': 0}, 16, 'TOPLEFT')
 
-screen_buffer.AddObject({
-  "name": "temp",
-  "x": 0,
-  "y": 0,
-  "size": 16,
-  "align": "TOPLEFT",
-})
+debug(text1)
+debug('Setting align obj')
+text2.AlignTo({'obj': text1, 'align': 'TOPRIGHT'})
+debug('Setting align obj align')
+debug('Printing text2')
+debug(text2)
+text3.AlignTo({'obj': text2, 'align': 'BOTTOMLEFT'})
 
-screen_buffer.AddObject({
-  "name": "temp_label",
-  "x": 25,
-  "y": 0,
-  "size": 16,
-  "align": "TOPLEFT"
-})
-
-screen_buffer.SetValue({
-  "name": "temp",
-  "value": "12",
-})
-
-screen_buffer.SetValue({
-  "name": "temp_label",
-  "value": "°F",
-}) 
-
-screen_buffer.Draw(function (err, image) {
-
-	if (err) {
-		return debug(err)
-	}
-
-	screen.writeBuf(image, function (err, s) {
-		debug(err)
-	})
+screen.display(function (err, obj) {
+  debug(err)
 })

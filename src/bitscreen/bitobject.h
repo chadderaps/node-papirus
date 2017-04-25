@@ -36,6 +36,7 @@ public:
 
   int X();
   int Y();
+  void GetLocation(ALIGNMENT align, int & loc_x, int & loc_y);
   int FontSize() { return fontSize; }
   string ValueStr() { return value; }
   string Name() { return name; }
@@ -46,7 +47,10 @@ public:
 private:
 
   static void New(const FuncArgs& args);
+  static void SetAlignTo(const FuncArgs& args);
   static void SetValue(v8::Local<v8::String> property, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info);
+  static void SetAlignToObj(v8::Local<v8::String> property, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info);
+  static void SetObjAlign(v8::Local<v8::String> property, v8::Local<v8::Value> val, const v8::PropertyCallbackInfo<void>& info);
   static void GetWidth(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
   static void GetHeight(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
   static void GetX(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
@@ -56,6 +60,8 @@ private:
   static void GetValue(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
   static void GetAlign(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
   static void GetAlignTo(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void GetAlignToObj(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void GetObjAlign(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
 
   BitObject(BitImage * screen, string n, string value, int ex, int why, ALIGNMENT a);
   ~BitObject();
@@ -70,10 +76,9 @@ private:
   int fontSize;
   string fontName;
   ALIGNMENT align;
-  struct {
-    BitObject * obj;
-    ALIGNMENT align;
-  } alignTo;
+  BitObject * alignToObj;
+  ALIGNMENT objAlign;
+
 };
 
 };

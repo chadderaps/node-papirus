@@ -22,13 +22,13 @@ temp_display = obj.AddObject({
   "align": "TOPLEFT"
 })
 
-temp_display.value = "12"
+temp_display.value = "hi"
 debug("TempDisplay")
 debug(temp_display);
 
 temp_label = obj.AddObject({
   "name": "temp_label",
-  "x": 0,
+  "x": 4,
   "y": 0,
   "size": 16,
   "align": "TOPLEFT",
@@ -42,13 +42,11 @@ debug(temp_label)
 
 temp_debug = temp_label.alignTo.obj
 
-temp_debug.value = "30"
-
 debug(obj.GetObject({
   "name": "temp"
 }))
 
-temp_label.value = "°F"
+temp_label.value = "you"
 
 obj.Draw(function (err, image) {
   if (err) {

@@ -18,6 +18,7 @@ private:
   int height;
   int num_bytes;
   int pitch;
+  int base_height;
   struct {
     int x;
     int y;
@@ -65,6 +66,7 @@ public:
   BitCharBuffer(FT_GlyphSlot glyph);
 
   int Height() { return height; }
+  int BaseHeight() { return base_height; }
   int Width() { return width; }
   int Pitch() { return pitch; }
   int Top() { return offset.top; }

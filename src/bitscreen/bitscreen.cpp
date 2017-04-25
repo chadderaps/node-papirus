@@ -149,6 +149,8 @@ void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
       x -= bObj->Width() / 2;
     }
 
+    printf("  Start is %d, %d\n", x, y);
+
     int status = obj->SetString(bObj->ValueStr(), bObj->FontSize(), x, y);
 
     if (status < 0)

@@ -6,6 +6,7 @@ BitCharBuffer::BitCharBuffer(FT_GlyphSlot glyph) :
   width(glyph->bitmap.width),
   height(glyph->bitmap.rows),
   num_bytes(glyph->bitmap.pitch * height),
+  base_height(glyph->linearVertAdvance / 65536),
   pitch(glyph->bitmap.pitch),
   endIter(this, num_bytes)
 {
@@ -54,17 +55,14 @@ BitCharBuffer * BitChar::GetChar(uint32_t c)
 BitCharBuffer::iterator::iterator(BitCharBuffer * bcb, int offset) :
   obj(bcb), idx(offset)
 {
-  CalcCoordinates();
+  if (idx < obj->num_bytes) CalcCoordinates();
 }
 
 BitCharBuffer::iterator & BitCharBuffer::iterator::operator++()
 {
   if (idx < obj->num_bytes) idx++;
 
-  if (idx < obj->num_bytes)
-  {
-    CalcCoordinates();
-  }
+  if (idx < obj->num_bytes) CalcCoordinates();
 
   return *this;
 }
