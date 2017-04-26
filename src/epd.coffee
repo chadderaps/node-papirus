@@ -116,13 +116,13 @@ class EPD
         return callback err, @
 
   displayBuf: (buf) ->
-    row = 50
-    col = 15
+    row = @height()
+    col = @width() / 8
 
     for i in [0..row-1]
       bits = ''
       for j in [0..col-1]
-        b = buf[i*25+j]
+        b = buf[i*col+j]
         for k in [0..7]
           if (b & (1 << (7-k)))
             bits += '.'

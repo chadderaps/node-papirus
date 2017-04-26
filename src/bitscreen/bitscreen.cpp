@@ -109,6 +109,30 @@ void BitImage::GetObject(const FunctionCallbackInfo<Value>& args)
   args.GetReturnValue().Set(bObj->persistent());
 }
 
+void BitImage::GetLocation(BitObject::ALIGNMENT alignment, int & loc_x, int & loc_y)
+{
+  loc_x = 0;
+  loc_y = 0;
+
+  if (alignment & BitObject::ALIGNMENT_BOTTOM)
+  {
+    loc_y = height - 1;
+  }
+  else if ((alignment & BitObject::ALIGNMENT_TOP) == 0)
+  {
+    loc_y = height / 2;
+  }
+
+  if (alignment & BitObject::ALIGNMENT_RIGHT)
+  {
+    loc_x = width - 1;
+  }
+  else if ((alignment & BitObject::ALIGNMENT_LEFT) == 0)
+  {
+    loc_x = width / 2;
+  }
+}
+
 void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
 {
   Isolate * isolate = args.GetIsolate();
@@ -130,21 +154,21 @@ void BitImage::Draw(const FunctionCallbackInfo<Value>& args)
     int x = bObj->X();
     int y = bObj->Y();
 
-    if (bObj->Align() & ALIGNMENT_TOP)
+    if (bObj->Align() & BitObject::ALIGNMENT_TOP)
     {
       y += bObj->Height();
     }
-    else if ((bObj->Align() & ALIGNMENT_BOTTOM) == 0)
+    else if ((bObj->Align() & BitObject::ALIGNMENT_BOTTOM) == 0)
     {
       y += bObj->Height() / 2;
       printf("Height was set to %u\n", bObj->Height() / 2);
     }
 
-    if (bObj->Align() & ALIGNMENT_RIGHT)
+    if (bObj->Align() & BitObject::ALIGNMENT_RIGHT)
     {
       x -= bObj->Width();
     }
-    else if ((bObj->Align() & ALIGNMENT_LEFT) == 0)
+    else if ((bObj->Align() & BitObject::ALIGNMENT_LEFT) == 0)
     {
       x -= bObj->Width() / 2;
     }
@@ -309,7 +333,7 @@ int BitImage::SetString(string str, int size, int x, int y)
 
     if (status < 0)
     {
-      printf("Failed on char %c\n", *c);
+      printf("Failed on char %c with status %d\n", *c, status);
       break;
     }
 

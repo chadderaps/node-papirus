@@ -16,6 +16,8 @@ class BitObject : public node::ObjectWrap
 
   static v8::Persistent<v8::Function> constructor;
 
+public:
+
   enum ALIGNMENT
   {
     ALIGNMENT_TOP = 0x1,
@@ -29,14 +31,13 @@ class BitObject : public node::ObjectWrap
     ALIGNMENT_DEFAULT = ALIGNMENT_TOPLEFT
   };
 
-public:
-
   static void Init(v8::Isolate * isolate);
   static void NewInstance(const FuncArgs& args);
 
   int X();
   int Y();
   void GetLocation(ALIGNMENT align, int & loc_x, int & loc_y);
+  bool AlignToScreen() { return alignToObj == NULL; }
   int FontSize() { return fontSize; }
   string ValueStr() { return value; }
   string Name() { return name; }

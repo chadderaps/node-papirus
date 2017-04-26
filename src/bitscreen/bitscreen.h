@@ -21,14 +21,6 @@ public:
 
 //private:
 
-  enum ALIGNMENT
-  {
-    ALIGNMENT_TOP = 0x1,
-    ALIGNMENT_BOTTOM = 0x2,
-    ALIGNMENT_LEFT = 0x4,
-    ALIGNMENT_RIGHT = 0x8
-  };
-
   CharFont::Fonts fonts;
 
   int width;
@@ -57,8 +49,7 @@ public:
 
   int Size() { return (width * height) / 8; }
 
-  static ALIGNMENT GetAlignment(string align);
-  static string GetAlignmentString(ALIGNMENT align);
+  void GetLocation(BitObject::ALIGNMENT align, int & loc_x, int & loc_y);
 
   static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
   static v8::Persistent<v8::Function> constructor;

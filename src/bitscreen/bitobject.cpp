@@ -328,30 +328,34 @@ string BitObject::GetAlignmentString(BitObject::ALIGNMENT align)
 
 int BitObject::X()
 {
-  if (not alignToObj)
+  int loc_x = 0, dummy = 0;
+
+  if (AlignToScreen())
   {
-    return x;
+    screen->GetLocation(align, loc_x, dummy);
   }
   else
   {
-    int loc_x, dummy;
     alignToObj->GetLocation(objAlign, loc_x, dummy);
-    return x + loc_x;
   }
+
+  return x + loc_x;
 }
 
 int BitObject::Y()
 {
-  if (not alignToObj)
+  int loc_y, dummy;
+
+  if (AlignToScreen())
   {
-    return y;
+    screen->GetLocation(align, dummy, loc_y);
   }
   else
   {
-    int loc_y, dummy;
     alignToObj->GetLocation(objAlign, dummy, loc_y);
-    return y + loc_y;
   }
+
+  return y + loc_y;
 }
 
 void BitObject::GetLocation(ALIGNMENT alignment, int & loc_x, int & loc_y)
