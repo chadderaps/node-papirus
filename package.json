@@ -4,7 +4,7 @@
   "description": "Node library for PaPiRus eink display",
   "main": "app.js",
   "scripts": {
-    "test": "node bitimage.js",
+    "test": "node screen.js",
     "start": "node app.js",
     "build": "node-gyp build -d"
   },

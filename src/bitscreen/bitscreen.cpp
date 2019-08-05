@@ -375,7 +375,10 @@ int BitImage::AddChar(CharFont::BitCharBuffer * image, int x, int y)
     printf("Image width is %u\n", image->Width());
     return -3;
   }
-  if (image->Height() + y >= height) return -4;
+  if (image->Height() + y >= height) {
+    printf("Image height is %u\n", image->Height());
+    return -4;
+  }
 
   printf("X, Y = %u, %u\n", x, y);
 
